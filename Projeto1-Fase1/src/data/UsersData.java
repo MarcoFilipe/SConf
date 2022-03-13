@@ -10,10 +10,9 @@ import java.io.IOException;
 public class UsersData {
 
 	private static final String USERSINF_FILE_PATHNAME = "users_inf.txt";
-
+	private static File file = createUsersFile();
+	
 	public synchronized static User getLine(String userID) {
-		File file = createOrGetUsersFile();
-
 		String currentUserID = null;
 		String line = null;
 
@@ -34,8 +33,6 @@ public class UsersData {
 	}
 
 	public synchronized static void addLine(String userID, String password) {
-		createOrGetUsersFile();
-
 		try (BufferedWriter bw = new BufferedWriter(new FileWriter(USERSINF_FILE_PATHNAME, true))) {
 			bw.write(userID + ":" + password);
 			bw.flush();
@@ -46,7 +43,7 @@ public class UsersData {
 		}
 	}
 
-	private static File createOrGetUsersFile() {
+	private static File createUsersFile() {
 		File file = null;
 		try {
 			file = new File(USERSINF_FILE_PATHNAME);
