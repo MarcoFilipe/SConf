@@ -10,7 +10,7 @@ import java.io.IOException;
 public class UsersData {
 
 	private static final String USERSINF_FILE_PATHNAME = "users_inf.txt";
-	private static File file = createUsersFile();
+	private static File file = createOrGetUsersFile();
 	
 	public synchronized static User getLine(String userID) {
 		String currentUserID = null;
@@ -43,7 +43,7 @@ public class UsersData {
 		}
 	}
 
-	private static File createUsersFile() {
+	private synchronized static File createOrGetUsersFile() {
 		File file = null;
 		try {
 			file = new File(USERSINF_FILE_PATHNAME);
