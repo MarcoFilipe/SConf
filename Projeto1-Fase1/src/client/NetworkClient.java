@@ -19,8 +19,8 @@ public class NetworkClient {
 			out = new ObjectOutputStream(clientSocket.getOutputStream());
 
 			if (authentication(clientSocket, out, in, userID, password)) {
-				mainLoop(clientSocket, out, in);
 				System.out.println("Autenticado");
+				mainLoop(clientSocket, out, in);
 			} else {
 				System.out.println("Não autenticado");
 				System.exit(0);
@@ -31,15 +31,23 @@ public class NetworkClient {
 		}
 	}
 
-	private Boolean authentication(Socket socket, ObjectOutputStream out, ObjectInputStream in, String userID,
+	private boolean authentication(Socket socket, ObjectOutputStream out, ObjectInputStream in, String userID,
 			String password) throws ClassNotFoundException, IOException {
 
 		networkSend(socket, out, userID);
 		networkSend(socket, out, password);
 
-		Boolean response = (Boolean) networkReceive(socket, in);
+		Object resp = in.readObject();
 
-		return response;
+		if (resp instanceof String) {
+			System.err.println(resp);
+			return true;
+		} else if (resp instanceof Boolean) {
+			if ((Boolean) resp) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void networkSend(Socket socket, ObjectOutputStream out, Object message) {
@@ -49,11 +57,6 @@ public class NetworkClient {
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 		}
-	}
-
-	private Object networkReceive(Socket socket, ObjectInputStream in) throws ClassNotFoundException, IOException {
-		Object response = in.readObject();
-		return response;
 	}
 
 	public void mainLoop(Socket clientSocket, ObjectOutputStream out, ObjectInputStream in)
@@ -76,12 +79,12 @@ public class NetworkClient {
 				switch (SplittedLine[0]) {
 				case "balance":
 				case "b":
-					strResp = (String) networkReceive(clientSocket, in);
+					strResp = (String) in.readObject();
 					System.out.println("Valor atual do saldo da sua conta: " + strResp);
 					break;
 				case "makepayment":
 				case "m":
-					Object resp = networkReceive(clientSocket, in);
+					Object resp = in.readObject();
 
 					if (resp.getClass() == Boolean.class) {
 						boolResp = (Boolean) resp;
@@ -99,7 +102,7 @@ public class NetworkClient {
 					break;
 				}
 			} catch (NullPointerException | ClassCastException e) {
-				/* Do nothing */
+				System.err.println("Ocorreu um erro inesperado");
 			}
 			System.out.print("Comando: ");
 			System.out.flush();

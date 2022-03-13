@@ -31,26 +31,24 @@ public class NetworkServer {
 				Socket inSoc = serverSoc.accept();
 				ServerThread newServerThread = new ServerThread(inSoc);
 				newServerThread.start();
-				// serverSoc.close();
+				// serverSoc.close(); *PORQUE NAO EXISTE COMANDO QUIT - VERIFICAR COM PROFESSOR*
 			} catch (IOException e) {
 				System.err.println(e.getMessage());
 			}
 		}
 	}
 
-	private boolean authentication(String userID, String password) {
+	private boolean authentication(String userID, String password) throws UserNotFoundException {
 		AuthenticationHandler authHandler = new AuthenticationHandler(catalog);
 
-		try {
-			if (authHandler.validate(userID, password)) {
-				return true;
-			} else {
-				return false;
-			}
-		} catch (UserNotFoundException e) {
-			System.err.println(e.getMessage());
-			authHandler.createNewUser(userID, password);
+		switch (authHandler.validate(userID, password)) {
+		case VALIDATED:
 			return true;
+		case NOT_VALIDATED:
+			return false;
+		default:
+			authHandler.createNewUser(userID, password);
+			throw new UserNotFoundException("Usuario nao existe, criando novo usuario...");
 		}
 	}
 
@@ -73,11 +71,20 @@ public class NetworkServer {
 				userID = (String) in.readObject();
 				password = (String) in.readObject();
 
-				boolean authenticated = authentication(userID, password);
+				boolean authenticated = false;
+				boolean userNotFoundMessageSent = false;
+				try {
+					authenticated = authentication(userID, password);
+				} catch (UserNotFoundException e) {
+					authenticated = true;
+					userNotFoundMessageSent = true;
+					out.writeObject(e.getMessage());
+				}
 
 				if (authenticated) {
-					System.out.println("Cliente conectado");
-					out.writeObject(true);
+					if (!userNotFoundMessageSent) {
+						out.writeObject(true);
+					}
 
 					String message = null;
 
@@ -88,7 +95,6 @@ public class NetworkServer {
 
 					}
 				} else {
-					System.out.print("Credenciais incorretas. ");
 					out.writeObject(false);
 				}
 
@@ -100,6 +106,5 @@ public class NetworkServer {
 				System.err.println(e.getMessage());
 			}
 		}
-
 	}
 }

@@ -6,6 +6,12 @@ import domain.BankAccountCatalog;
 import exceptions.UserNotFoundException;
 
 public class AuthenticationHandler {
+	
+	protected enum Authentication {
+		VALIDATED,
+		NOT_VALIDATED,
+		USER_NOT_FOUND
+	}
 
 	private BankAccountCatalog catalog = null;
 
@@ -21,18 +27,18 @@ public class AuthenticationHandler {
 	 * @return
 	 * @throws UserNotFoundException
 	 */
-	public Boolean validate(String userID, String password) throws UserNotFoundException {
+	public Authentication validate(String userID, String password) {
 		UsersData.User user = UsersData.getLine(userID);
 
 		if (user == null) {
-			throw new UserNotFoundException("Usuario nao existe, criando novo usuario...");
+			return Authentication.USER_NOT_FOUND;
 		}
 
 		if (userID.equals(user.getUserID()) && password.equals(user.getPassword())) {
-			return true;
+			return Authentication.VALIDATED;
 		}
 
-		return false;
+		return Authentication.NOT_VALIDATED;
 	}
 
 	/**
