@@ -11,11 +11,6 @@ public class UserNotFoundException extends Exception {
 	private static final long serialVersionUID = 1398946747507327275L;
 
 	/**
-	 * Constroi uma UserDoesNotExistException sem mensagem informativa.
-	 */
-	public UserNotFoundException() {/* do nothing */}
-
-	/**
 	 * Constroi uma UserDoesNotExistException com mensagem informativa.
 	 * 
 	 * @param message - mensagem informativa.
