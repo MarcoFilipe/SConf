@@ -22,7 +22,7 @@ public class NetworkClient {
 				System.out.println("Autenticado");
 				mainLoop(clientSocket, out, in);
 			} else {
-				System.out.println("Não autenticado");
+				System.err.println("Não autenticado");
 				System.exit(0);
 			}
 
@@ -66,10 +66,9 @@ public class NetworkClient {
 		String line = null;
 		String strResp = null;
 		Boolean boolResp = null;
+		Object resp = null;
 
 		System.out.print("Comando: ");
-		System.out.flush();
-
 		while (sc.hasNextLine()) {
 			line = sc.nextLine();
 			SplittedLine = line.split(" ", 3);
@@ -84,28 +83,43 @@ public class NetworkClient {
 					break;
 				case "makepayment":
 				case "m":
-					Object resp = in.readObject();
+					resp = in.readObject();
 
 					if (resp.getClass() == Boolean.class) {
 						boolResp = (Boolean) resp;
 						if (boolResp) {
 							System.out.println("Pagamento efetuado com sucesso");
+						} else {
+							System.err.println("Operacao nao concluida");
 						}
 					} else if (resp.getClass() == String.class) {
-						strResp = (String) resp;
+						System.err.println((String) resp);
 					}
+					break;
+				case "requestpayment":
+				case "r":
+					resp = in.readObject();
 
+					if (resp.getClass() == Boolean.class) {
+						boolResp = (Boolean) resp;
+						if (boolResp) {
+							System.out.println("Envio do pedido de pagamento para efetuado com sucesso");
+						} else {
+							System.err.println("Operacao nao concluida");
+						}
+					} else if (resp.getClass() == String.class) {
+						System.err.println((String) resp);
+					}
 					break;
 				// TODO
 				default:
-					/* Do nothing */
+					System.err.println((String) in.readObject());
 					break;
 				}
 			} catch (NullPointerException | ClassCastException e) {
 				System.err.println("Ocorreu um erro inesperado");
 			}
 			System.out.print("Comando: ");
-			System.out.flush();
 		}
 		sc.close();
 	}

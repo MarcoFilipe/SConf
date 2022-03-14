@@ -3,6 +3,7 @@ package server;
 import domain.BankAccount;
 import domain.BankAccountCatalog;
 import exceptions.InsufficientBalanceException;
+import exceptions.InvalidOperation;
 import exceptions.UserNotFoundException;
 
 @SuppressWarnings("unchecked")
@@ -13,6 +14,10 @@ public class Skeleton<E> {
 		String[] splittedMessage = message.split(" ", 3);
 
 		BankAccount userBA = null;
+		BankAccount otherUserBA = null;
+		String otherUserID = null;
+		double amount;
+
 		try {
 			userBA = catalog.getBankAccount(userID);
 		} catch (UserNotFoundException e) {
@@ -26,25 +31,56 @@ public class Skeleton<E> {
 			break;
 		case "makepayment":
 		case "m":
-			if (splittedMessage.length == 3) {
-				String otherUserID = splittedMessage[1];
-				BankAccount otherUserBA = null;
-				try {
-					otherUserBA = catalog.getBankAccount(otherUserID);
-					double amount = (double) Double.valueOf(splittedMessage[2]);
-					userBA.removeAmount(amount);
-					otherUserBA.addAmount(amount);
-					resp = (E) Boolean.TRUE;
-				} catch (InsufficientBalanceException | UserNotFoundException e) {
-					resp = (E) e.getMessage();
-				} catch (Exception e) {
-					/* Do nothing */
-				}
-			} else {
+			if (splittedMessage.length != 3) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+
+			otherUserID = splittedMessage[1];
+
+			if (userID.equals(otherUserID)) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+
+			try {
+				otherUserBA = catalog.getBankAccount(otherUserID);
+				amount = (double) Double.valueOf(splittedMessage[2]);
+				userBA.removeAmount(amount);
+				otherUserBA.addAmount(amount);
+				resp = (E) Boolean.TRUE;
+			} catch (InsufficientBalanceException | UserNotFoundException e) {
+				resp = (E) e.getMessage();
+			} catch (NumberFormatException | InvalidOperation e) {
 				resp = (E) Boolean.FALSE;
 			}
 			break;
-		// TODO
+		case "requestpayment":
+		case "r":
+			if (splittedMessage.length != 3) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+
+			otherUserID = splittedMessage[1];
+
+			if (userID.equals(otherUserID)) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+
+			try {
+				otherUserBA = catalog.getBankAccount(otherUserID);
+				amount = (double) Double.valueOf(splittedMessage[2]);
+				otherUserBA.addIndPaymentRequest(otherUserID, userID, amount);
+				resp = (E) Boolean.TRUE;
+			} catch (UserNotFoundException e) {
+				resp = (E) e.getMessage();
+			} catch (NumberFormatException e) {
+				resp = (E) Boolean.FALSE;
+			}
+
+			break;
 		default:
 			String err = "Comando nao existe";
 			resp = (E) err;
@@ -53,5 +89,4 @@ public class Skeleton<E> {
 
 		return resp;
 	}
-
 }
