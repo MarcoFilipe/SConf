@@ -4,6 +4,12 @@ import java.util.HashMap;
 
 import exceptions.UserNotFoundException;
 
+/**
+ * Classe responsavel pela gestao dos clientes e suas respectivas contas.
+ * 
+ * @author grupo 36.
+ *
+ */
 public class BankAccountCatalog {
 
 	private HashMap<String, BankAccount> hashMap = new HashMap<String, BankAccount>();

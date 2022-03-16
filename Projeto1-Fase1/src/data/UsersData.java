@@ -7,11 +7,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/**
+ * Classe responsavel por ler e manipular os dados do ficheiro "users_inf.txt",
+ * que possui as informacoes <userID>:<password> de cada um dos usuarios.
+ * 
+ * @author grupo 36.
+ *
+ */
 public class UsersData {
 
 	private static final String USERSINF_FILE_PATHNAME = "users_inf.txt";
 	private static File file = createOrGetUsersFile();
-	
+
 	public synchronized static User getLine(String userID) {
 		String currentUserID = null;
 		String line = null;

@@ -10,21 +10,28 @@ public class Trokos {
 	private static String PASSWORD = null;
 
 	public static void main(String[] args) {
-		
+
 		if (!validateArgs(args)) {
 			System.exit(-1);
 		}
-		
+
 		NetworkClient network = new NetworkClient();
-		
+
 		try {
 			network.connect(IPHOSTNAME, PORT, USERID, PASSWORD);
 		} catch (ClassNotFoundException e) {
 			System.err.println(e.getMessage());
 		}
-		
+
 	}
 
+	/**
+	 * Metodo que valida os argumentos recebidos como parametro pela funcao main.
+	 * 
+	 * @param args - argumentos.
+	 * @return - true: caso os argumentos sejam validos, false: caso os argumentos
+	 *         sejam invalidos.
+	 */
 	private static boolean validateArgs(String[] args) {
 		if (args.length < 2) {
 			System.err.println(

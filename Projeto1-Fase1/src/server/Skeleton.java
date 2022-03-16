@@ -6,6 +6,14 @@ import exceptions.InsufficientBalanceException;
 import exceptions.InvalidOperation;
 import exceptions.UserNotFoundException;
 
+/**
+ * 
+ * Classe responsavel pela logica de todos os comandos.
+ * 
+ * @author grupo 36.
+ *
+ * @param <E> Objeto generico.
+ */
 @SuppressWarnings("unchecked")
 public class Skeleton<E> {
 

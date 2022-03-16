@@ -8,6 +8,18 @@ import java.util.Scanner;
 
 public class NetworkClient {
 
+	/**
+	 * Metodo que conecta o cliente ao servidor. Caso a conexao seja bem sucedida,
+	 * aparece uma mensagem indicando que o cliente foi autenticado, caso o
+	 * contrario, aparece uma mensagem indicando que o cliente nao foi autenticado e
+	 * a aplicacao termina.
+	 * 
+	 * @param ipHostname - endereco IP ou hostname do servidor.
+	 * @param port - porta do servidor.
+	 * @param userID - a identificacao do cliente.
+	 * @param password - a senha do cliente.
+	 * @throws ClassNotFoundException
+	 */
 	public void connect(String ipHostname, int port, String userID, String password) throws ClassNotFoundException {
 		Socket clientSocket = null;
 		ObjectInputStream in = null;
@@ -30,7 +42,7 @@ public class NetworkClient {
 			System.err.println(e.getMessage());
 		}
 	}
-
+	
 	private boolean authentication(Socket socket, ObjectOutputStream out, ObjectInputStream in, String userID,
 			String password) throws ClassNotFoundException, IOException {
 

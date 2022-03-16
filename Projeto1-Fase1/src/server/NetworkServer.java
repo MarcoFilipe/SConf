@@ -9,6 +9,12 @@ import java.net.Socket;
 import domain.BankAccountCatalog;
 import exceptions.UserNotFoundException;
 
+/**
+ * Classe responsavel pela interacao com os clientes.
+ * 
+ * @author grupo 36.
+ *
+ */
 public class NetworkServer {
 
 	private Skeleton<Object> skel = new Skeleton<Object>();

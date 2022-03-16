@@ -5,6 +5,12 @@ import domain.BankAccount;
 import domain.BankAccountCatalog;
 import exceptions.UserNotFoundException;
 
+/**
+ * Classe responsavel pela autenticacao do cliente.
+ * 
+ * @author grupo 36.
+ *
+ */
 public class AuthenticationHandler {
 	
 	protected enum Authentication {

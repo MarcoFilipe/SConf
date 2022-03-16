@@ -1,5 +1,11 @@
 package server;
 
+/**
+ * Classe que contem a funcao main do servidor.
+ * 
+ * @author grupo 36.
+ *
+ */
 public class TrokosServer {
 
 	private static int port = 45678;
@@ -12,6 +18,10 @@ public class TrokosServer {
 		setupNetworkServer();
 	}
 
+	/**
+	 * Metodo que cria uma variavel da classe NetworkServer e chama a funcao de
+	 * inicializacao com a porta definida.
+	 */
 	private static void setupNetworkServer() {
 		NetworkServer network = new NetworkServer();
 
@@ -19,10 +29,10 @@ public class TrokosServer {
 	}
 
 	/**
-	 * TODO
+	 * Metodo que valida os argumentos recebidos pela funcao main.
 	 * 
-	 * @param args
-	 * @return
+	 * @param args - argumentos a serem validados.
+	 * @return - true caso os argumentos sejam validos, false caso ao contrario.
 	 */
 	private static boolean validateArgs(String[] args) {
 		if (args.length == 0) {
