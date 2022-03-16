@@ -1,5 +1,7 @@
 package domain;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +20,7 @@ import exceptions.UserNotFoundException;
 public class BankAccount {
 
 	private static final IndPendingPaymentData IND_PENDING_PAYMENT_SINGLETON = IndPendingPaymentData.getInstance();
-	private static final List<Pair> IND_PENDING_PAYMENT = new ArrayList<Pair>();
+	private List<IndPaymentRequestInformation> indPendingPayment = new ArrayList<IndPaymentRequestInformation>();
 	private double currentAmount = 100.0;
 
 	public double balance() {
@@ -45,40 +47,75 @@ public class BankAccount {
 		}
 	}
 
-	public synchronized void addIndPaymentRequest(String userID, String otherUserID, double amount) {
-		IND_PENDING_PAYMENT.add(new Pair(userID, amount));
-		IND_PENDING_PAYMENT_SINGLETON.addLine(userID, otherUserID, amount);
+	public synchronized void addIndPaymentRequest(String userID, String userWhoRequestedPayment, double amount) {
+		IndPaymentRequestInformation inf = new IndPaymentRequestInformation(amount, userWhoRequestedPayment);
+		indPendingPayment.add(inf);
+		IND_PENDING_PAYMENT_SINGLETON.addLine(inf.getUniqueID(), amount, userWhoRequestedPayment);
 	}
 
 	// TODO verificar
 	public synchronized void removeIndPaymentRequest(String userID) throws UserNotFoundException {
 		String currUser = null;
-		for (int i = 0; i < IND_PENDING_PAYMENT.size(); i++) {
-			currUser = IND_PENDING_PAYMENT.get(i).getUserID();
+		for (int i = 0; i < indPendingPayment.size(); i++) {
+			currUser = indPendingPayment.get(i).getUserID();
 			if (currUser.equals(userID)) {
-				IND_PENDING_PAYMENT.get(i);
+				indPendingPayment.get(i);
 			}
 		}
 		throw new UserNotFoundException("Nao existe usuario com essa identidade");
 	}
-	
-	public class Pair {
 
-		private String userID = null;
+	public List<String> getIndPaymtRequestList() {
+		List<String> pendingPayments = new ArrayList<String>();
+		StringBuilder sb = new StringBuilder();
+
+		if (indPendingPayment.size() == 0) {
+			return null;
+		}
+
+		for (IndPaymentRequestInformation ipri : indPendingPayment) {
+			sb.append(ipri.getUniqueID());
+			sb.append(" ");
+			sb.append(ipri.getAmount());
+			sb.append(" ");
+			sb.append(ipri.getUserID());
+			pendingPayments.add(sb.toString());
+			sb.delete(0, sb.length() - 1);
+		}
+
+		return pendingPayments;
+	}
+
+	public class IndPaymentRequestInformation {
+
+		private String uniqueID = null;
 		private Double amount = null;
+		private String userID = null;
 
-		public Pair(String userID, Double amount) {
-			this.userID = userID;
+		public IndPaymentRequestInformation(Double amount, String userID) {
 			this.amount = amount;
+			this.userID = userID;
+			this.uniqueID = generateUniqueID();
+		}
+
+		public String getUniqueID() {
+			return uniqueID;
+		}
+
+		public Double getAmount() {
+			return amount;
 		}
 
 		public String getUserID() {
 			return userID;
 		}
 
-		public Double getAmount() {
-			return amount;
+		private String generateUniqueID() {
+			return Integer.toString(String
+					.format("%s%s%s", userID, String.valueOf(amount), LocalDateTime.now(ZoneId.of("WET")).toString())
+					.hashCode());
 		}
+
 	}
 
 }

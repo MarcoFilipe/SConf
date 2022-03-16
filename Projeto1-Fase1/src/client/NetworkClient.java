@@ -15,9 +15,9 @@ public class NetworkClient {
 	 * a aplicacao termina.
 	 * 
 	 * @param ipHostname - endereco IP ou hostname do servidor.
-	 * @param port - porta do servidor.
-	 * @param userID - a identificacao do cliente.
-	 * @param password - a senha do cliente.
+	 * @param port       - porta do servidor.
+	 * @param userID     - a identificacao do cliente.
+	 * @param password   - a senha do cliente.
 	 * @throws ClassNotFoundException
 	 */
 	public void connect(String ipHostname, int port, String userID, String password) throws ClassNotFoundException {
@@ -42,7 +42,7 @@ public class NetworkClient {
 			System.err.println(e.getMessage());
 		}
 	}
-	
+
 	private boolean authentication(Socket socket, ObjectOutputStream out, ObjectInputStream in, String userID,
 			String password) throws ClassNotFoundException, IOException {
 
@@ -115,7 +115,7 @@ public class NetworkClient {
 					if (resp.getClass() == Boolean.class) {
 						boolResp = (Boolean) resp;
 						if (boolResp) {
-							System.out.println("Envio do pedido de pagamento para efetuado com sucesso");
+							System.out.println("Envio do pedido de pagamento efetuado com sucesso");
 						} else {
 							System.err.println("Operacao nao concluida");
 						}
@@ -123,7 +123,24 @@ public class NetworkClient {
 						System.err.println((String) resp);
 					}
 					break;
-				// TODO
+				case "viewrequests":
+				case "v":
+					resp = (String) in.readObject();
+					System.out.print("Pedidos de pagamento pendente: ");
+					if (((String) resp).length() == 0) {
+						System.out.println("vazio");
+						break;
+					}
+					System.out.println();
+					String[] splittedResp = ((String) resp).split(",");
+					String[] splittedPaymentInf = null;
+					for (String paymentInf : splittedResp) {
+						splittedPaymentInf = (paymentInf).split(" ", 3);
+						System.out.println("[ID do pagamento]: " + splittedPaymentInf[0]);
+						System.out.println("Valor: " + splittedPaymentInf[1]);
+						System.out.println("Usuario que fez o pedido: " + splittedPaymentInf[2]);
+					}
+					break;
 				default:
 					System.err.println((String) in.readObject());
 					break;

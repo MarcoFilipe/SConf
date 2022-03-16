@@ -1,5 +1,7 @@
 package server;
 
+import java.util.List;
+
 import domain.BankAccount;
 import domain.BankAccountCatalog;
 import exceptions.InsufficientBalanceException;
@@ -32,9 +34,14 @@ public class Skeleton<E> {
 			resp = (E) Boolean.FALSE;
 		}
 
-		switch (splittedMessage[0]) {
+		switch (splittedMessage[0]) { //
 		case "balance":
 		case "b":
+//			if (splittedMessage.length != 1) {
+//				resp = (E) Boolean.FALSE;
+//				break;
+//			}
+			
 			resp = (E) String.valueOf(userBA.balance());
 			break;
 		case "makepayment":
@@ -88,6 +95,24 @@ public class Skeleton<E> {
 				resp = (E) Boolean.FALSE;
 			}
 
+			break;
+		case "viewrequests":
+		case "v":
+			List <String> pendingIndPaymentsList = userBA.getIndPaymtRequestList();
+			if (pendingIndPaymentsList == null) {
+				resp = (E) "";
+				break;
+			}
+			
+			StringBuilder sb = new StringBuilder();
+			int listSize = pendingIndPaymentsList.size();
+			for (int i = 0; i < listSize; i++) {
+				sb.append(pendingIndPaymentsList.get(i));
+				if (!(i == listSize - 1)) {
+					sb.append(",");
+				}
+			}
+			resp = (E) sb.toString();
 			break;
 		default:
 			String err = "Comando nao existe";
