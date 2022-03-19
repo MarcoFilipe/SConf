@@ -136,9 +136,24 @@ public class NetworkClient {
 					String[] splittedPaymentInf = null;
 					for (String paymentInf : splittedResp) {
 						splittedPaymentInf = (paymentInf).split(" ", 3);
-						System.out.println("[ID do pagamento]: " + splittedPaymentInf[0]);
+						System.out.println("[ID do pedido]: " + splittedPaymentInf[0]);
 						System.out.println("Valor: " + splittedPaymentInf[1]);
 						System.out.println("Usuario que fez o pedido: " + splittedPaymentInf[2]);
+					}
+					break;
+				case "payrequest":
+				case "p":
+					resp = in.readObject();
+
+					if (resp.getClass() == Boolean.class) {
+						boolResp = (Boolean) resp;
+						if (boolResp) {
+							System.out.println("Envio do pedido de pagamento efetuado com sucesso");
+						} else {
+							System.err.println("Operacao nao concluida");
+						}
+					} else if (resp.getClass() == String.class) {
+						System.err.println((String) resp);
 					}
 					break;
 				default:

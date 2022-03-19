@@ -3,8 +3,10 @@ package server;
 import java.util.List;
 
 import domain.BankAccount;
+import domain.BankAccount.IndPaymentRequestInformation;
 import domain.BankAccountCatalog;
 import exceptions.InsufficientBalanceException;
+import exceptions.InvalidIdentifierException;
 import exceptions.InvalidOperation;
 import exceptions.UserNotFoundException;
 
@@ -34,14 +36,14 @@ public class Skeleton<E> {
 			resp = (E) Boolean.FALSE;
 		}
 
-		switch (splittedMessage[0]) { //
+		switch (splittedMessage[0]) {
 		case "balance":
 		case "b":
 //			if (splittedMessage.length != 1) {
 //				resp = (E) Boolean.FALSE;
 //				break;
 //			}
-			
+
 			resp = (E) String.valueOf(userBA.balance());
 			break;
 		case "makepayment":
@@ -89,21 +91,18 @@ public class Skeleton<E> {
 				amount = (double) Double.valueOf(splittedMessage[2]);
 				otherUserBA.addIndPaymentRequest(otherUserID, userID, amount);
 				resp = (E) Boolean.TRUE;
-			} catch (UserNotFoundException e) {
+			} catch (UserNotFoundException | NumberFormatException | InvalidOperation e) {
 				resp = (E) e.getMessage();
-			} catch (NumberFormatException e) {
-				resp = (E) Boolean.FALSE;
 			}
-
 			break;
 		case "viewrequests":
 		case "v":
-			List <String> pendingIndPaymentsList = userBA.getIndPaymtRequestList();
+			List<String> pendingIndPaymentsList = userBA.getIndPaymtRequestList();
 			if (pendingIndPaymentsList == null) {
 				resp = (E) "";
 				break;
 			}
-			
+
 			StringBuilder sb = new StringBuilder();
 			int listSize = pendingIndPaymentsList.size();
 			for (int i = 0; i < listSize; i++) {
@@ -113,6 +112,28 @@ public class Skeleton<E> {
 				}
 			}
 			resp = (E) sb.toString();
+			break;
+		case "payrequest":
+		case "p":
+			if (splittedMessage.length != 2) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+
+			try {
+				String uniqueID = splittedMessage[1];
+				IndPaymentRequestInformation ipri = userBA.getIndPaymentRequestInf(uniqueID);
+				amount = ipri.getAmount();
+				otherUserID = ipri.getUserWhoRequestedPayment();
+				otherUserBA = catalog.getBankAccount(otherUserID);
+				userBA.removeAmount(amount);
+				otherUserBA.addAmount(amount);
+				userBA.removeIndPaymentRequest(uniqueID, userID);
+				resp = (E) Boolean.TRUE;
+			} catch (InvalidIdentifierException | UserNotFoundException | InvalidOperation
+					| InsufficientBalanceException e) {
+				resp = (E) e.getMessage();
+			}
 			break;
 		default:
 			String err = "Comando nao existe";

@@ -1,14 +1,13 @@
 package domain;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import data.IndPendingPaymentData;
 import exceptions.InsufficientBalanceException;
+import exceptions.InvalidIdentifierException;
 import exceptions.InvalidOperation;
-import exceptions.UserNotFoundException;
 
 /**
  * Classe responsavel pela representacao da conta de um determinado cliente,
@@ -21,6 +20,7 @@ public class BankAccount {
 
 	private static final IndPendingPaymentData IND_PENDING_PAYMENT_SINGLETON = IndPendingPaymentData.getInstance();
 	private List<IndPaymentRequestInformation> indPendingPayment = new ArrayList<IndPaymentRequestInformation>();
+	private List<String> paidPendingPayments = new ArrayList<String>();
 	private double currentAmount = 100.0;
 
 	public double balance() {
@@ -47,22 +47,42 @@ public class BankAccount {
 		}
 	}
 
-	public synchronized void addIndPaymentRequest(String userID, String userWhoRequestedPayment, double amount) {
-		IndPaymentRequestInformation inf = new IndPaymentRequestInformation(amount, userWhoRequestedPayment);
-		indPendingPayment.add(inf);
-		IND_PENDING_PAYMENT_SINGLETON.addLine(inf.getUniqueID(), amount, userWhoRequestedPayment);
+	public synchronized void addIndPaymentRequest(String userID, String userWhoRequestedPayment, double amount)
+			throws InvalidOperation {
+		if (amount >= 0) {
+			IndPaymentRequestInformation inf = new IndPaymentRequestInformation(amount, userID,
+					userWhoRequestedPayment);
+			indPendingPayment.add(inf);
+			IND_PENDING_PAYMENT_SINGLETON.addLine(inf.getUniqueID(), amount, userWhoRequestedPayment);
+		} else {
+			throw new InvalidOperation();
+		}
 	}
 
-	// TODO verificar
-	public synchronized void removeIndPaymentRequest(String userID) throws UserNotFoundException {
-		String currUser = null;
+	public synchronized void removeIndPaymentRequest(String uniqueID, String userID) {
+		IndPaymentRequestInformation currInf = null;
+
 		for (int i = 0; i < indPendingPayment.size(); i++) {
-			currUser = indPendingPayment.get(i).getUserID();
-			if (currUser.equals(userID)) {
-				indPendingPayment.get(i);
+			currInf = indPendingPayment.get(i);
+			if (currInf.getUniqueID().equals(uniqueID)) {
+				if (currInf.getUserID().equals(userID)) {
+					indPendingPayment.remove(i);
+					paidPendingPayments.add(uniqueID);
+				}
 			}
 		}
-		throw new UserNotFoundException("Nao existe usuario com essa identidade");
+	}
+
+	public IndPaymentRequestInformation getIndPaymentRequestInf(String uniqueID) throws InvalidIdentifierException {
+		for (IndPaymentRequestInformation currInf : indPendingPayment) {
+			if (currInf.getUniqueID().equals(uniqueID)) {
+				return currInf;
+			}
+		}
+		if (IND_PENDING_PAYMENT_SINGLETON.getLine(uniqueID) != null && !paidPendingPayments.contains(uniqueID)) {
+			throw new InvalidIdentifierException("O identificador eh referente a um pagamento pedido a outro cliente");
+		}
+		throw new InvalidIdentifierException("O identificador nao existe");
 	}
 
 	public List<String> getIndPaymtRequestList() {
@@ -78,7 +98,7 @@ public class BankAccount {
 			sb.append(" ");
 			sb.append(ipri.getAmount());
 			sb.append(" ");
-			sb.append(ipri.getUserID());
+			sb.append(ipri.getUserWhoRequestedPayment());
 			pendingPayments.add(sb.toString());
 			sb.delete(0, sb.length() - 1);
 		}
@@ -91,10 +111,12 @@ public class BankAccount {
 		private String uniqueID = null;
 		private Double amount = null;
 		private String userID = null;
+		private String userWhoRequestedPayment = null;
 
-		public IndPaymentRequestInformation(Double amount, String userID) {
+		public IndPaymentRequestInformation(Double amount, String userID, String userWhoRequestedPayment) {
 			this.amount = amount;
 			this.userID = userID;
+			this.userWhoRequestedPayment = userWhoRequestedPayment;
 			this.uniqueID = generateUniqueID();
 		}
 
@@ -110,10 +132,12 @@ public class BankAccount {
 			return userID;
 		}
 
+		public String getUserWhoRequestedPayment() {
+			return userWhoRequestedPayment;
+		}
+
 		private String generateUniqueID() {
-			return Integer.toString(String
-					.format("%s%s%s", userID, String.valueOf(amount), LocalDateTime.now(ZoneId.of("WET")).toString())
-					.hashCode());
+			return UUID.randomUUID().toString();
 		}
 
 	}

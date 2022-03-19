@@ -1,7 +1,9 @@
 package data;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -18,6 +20,7 @@ public class IndPendingPaymentData {
 
 	private static final String IND_PAYMENT_REQUEST_FILE_PATHNAME = "ind_payment_request.txt";
 	private static IndPendingPaymentData indPaymentRequestData_instance = null;
+	private static File file = null;
 
 	protected IndPendingPaymentData() {
 		createIndPaymentRequestFile();
@@ -28,6 +31,26 @@ public class IndPendingPaymentData {
 			indPaymentRequestData_instance = new IndPendingPaymentData();
 		}
 		return indPaymentRequestData_instance;
+	}
+
+	public synchronized String getLine(String uniqueID) {
+		String currentUniqueID = null;
+		String line = null;
+
+		try (BufferedReader br = new BufferedReader(new BufferedReader(new FileReader(file)))) {
+			while ((line = br.readLine()) != null) {
+				String[] lineSplitted = line.split(":", 3);
+				currentUniqueID = lineSplitted[0];
+				if (currentUniqueID.equals(uniqueID)) {
+					return line;
+				}
+			}
+			br.close();
+		} catch (IOException e) {
+			System.err.println(e.getMessage());
+		}
+
+		return null;
 	}
 
 	public synchronized void addLine(String uniqueID, double amount, String userWhoRequestedPayment) {
@@ -42,7 +65,6 @@ public class IndPendingPaymentData {
 	}
 
 	private synchronized void createIndPaymentRequestFile() {
-		File file = null;
 		try {
 			file = new File(IND_PAYMENT_REQUEST_FILE_PATHNAME);
 
