@@ -10,6 +10,7 @@ import exceptions.InvalidIdentifierException;
 import exceptions.InvalidOperation;
 import exceptions.UserNotFoundException;
 
+
 /**
  * 
  * Classe responsavel pela logica de todos os comandos.
@@ -29,6 +30,7 @@ public class Skeleton<E> {
 		BankAccount otherUserBA = null;
 		String otherUserID = null;
 		double amount;
+		QRCodeGenerator QR = new QRCodeGenerator();
 
 		try {
 			userBA = catalog.getBankAccount(userID);
@@ -135,6 +137,60 @@ public class Skeleton<E> {
 				resp = (E) e.getMessage();
 			}
 			break;
+		case "obtainQRcode":
+		case "o":
+			if (splittedMessage.length != 2) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+			
+			try {
+				
+				amount = (double) Double.valueOf(splittedMessage[1]);
+				QR.generateQRCode(userID, amount);
+				resp = (E) Boolean.TRUE;
+			} catch (UserNotFoundException | NumberFormatException | InvalidOperation e) {
+				resp = (E) e.getMessage();
+			}
+			break;
+		case "confirmQRcode":
+		case "c":
+			if (splittedMessage.length != 2) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+			
+			try {
+				
+				String info = QR.readQRCode(userID);
+				if(info.equals("fileNotExists")) {
+					resp = (E) "QR code nao existe";
+					break;
+				}
+				
+				String [] parts = info.split(":");
+				String otherUser = parts[0];
+				String mont = parts[1];
+				
+				if (userID.equals(otherUser)) {
+					resp = (E) Boolean.FALSE;
+					break;
+				}
+				
+				otherUserBA = catalog.getBankAccount(otherUser);
+				amount = (double) Double.valueOf(mont);
+				userBA.removeAmount(amount);
+				otherUserBA.addAmount(amount);
+				resp = (E) Boolean.TRUE;
+				
+			} catch ( NumberFormatException | InvalidOperation e) {
+				resp = (E) e.getMessage();
+			} catch (InsufficientBalanceException | UserNotFoundException e) {
+				resp = (E) e.getMessage();
+			}
+			break;
+			
+			
 		default:
 			String err = "Comando nao existe";
 			resp = (E) err;
