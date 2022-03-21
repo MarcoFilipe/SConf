@@ -7,11 +7,11 @@ FEITO:
 * requestpayment
 * viewrequests
 * payrequest
+* obtainQRcode
+* confirmQRcode
 
 TODO:
 
-* obtainQRcode
-* confirmQRcode
 * newgroup
 * addu
 * groups
