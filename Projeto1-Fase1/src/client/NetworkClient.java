@@ -156,6 +156,36 @@ public class NetworkClient {
 						System.err.println((String) resp);
 					}
 					break;
+				case "obtainQRcode":
+				case "o":
+					resp = in.readObject();
+
+					if (resp.getClass() == Boolean.class) {
+						boolResp = (Boolean) resp;
+						if (boolResp) {
+							System.out.println("QR code criado com sucesso");
+						} else {
+							System.err.println("Operacao nao concluida");
+						}
+					} else if (resp.getClass() == String.class) {
+						System.err.println((String) resp);
+					}
+					break;
+				case "confirmQRcode":
+				case "c":
+					resp = in.readObject();
+
+					if (resp.getClass() == Boolean.class) {
+						boolResp = (Boolean) resp;
+						if (boolResp) {
+							System.out.println("Pagamento QR code efetuado com sucesso");
+						} else {
+							System.err.println("Operacao nao concluida");
+						}
+					} else if (resp.getClass() == String.class) {
+						System.err.println((String) resp);
+					}
+					break;
 				default:
 					System.err.println((String) in.readObject());
 					break;

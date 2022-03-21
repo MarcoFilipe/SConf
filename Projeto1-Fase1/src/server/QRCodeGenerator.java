@@ -45,6 +45,7 @@ public class QRCodeGenerator {
 			
 			Result result = new MultiFormatReader().decode(bitmap);
 			String s = result.getText();
+			fi.close();
 			File myObj = new File(path);
 			
 			
@@ -52,7 +53,6 @@ public class QRCodeGenerator {
 				
 				return "fileNotExists";
 			}
-			fi.close();
 			myObj.delete();
 			
 			return s;

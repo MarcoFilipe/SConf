@@ -149,7 +149,7 @@ public class Skeleton<E> {
 				amount = (double) Double.valueOf(splittedMessage[1]);
 				QR.generateQRCode(userID, amount);
 				resp = (E) Boolean.TRUE;
-			} catch (UserNotFoundException | NumberFormatException | InvalidOperation e) {
+			} catch (Exception e) {
 				resp = (E) e.getMessage();
 			}
 			break;
@@ -162,7 +162,7 @@ public class Skeleton<E> {
 			
 			try {
 				
-				String info = QR.readQRCode(userID);
+				String info = QR.readQRCode(splittedMessage[1]);
 				if(info.equals("fileNotExists")) {
 					resp = (E) "QR code nao existe";
 					break;
