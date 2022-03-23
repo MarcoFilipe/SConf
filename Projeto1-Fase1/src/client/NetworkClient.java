@@ -186,6 +186,20 @@ public class NetworkClient {
 						System.err.println((String) resp);
 					}
 					break;
+				case "newgroup":
+				case "n":
+					resp = in.readObject();
+
+					if (resp.getClass() == Boolean.class) {
+						boolResp = (Boolean) resp;
+						if (boolResp) {
+							System.out.println("Grupo criado com sucesso");
+						} else {
+							System.err.println("Operacao nao concluida");
+						}
+					} else if (resp.getClass() == String.class) {
+						System.err.println((String) resp);
+					}
 				default:
 					System.err.println((String) in.readObject());
 					break;

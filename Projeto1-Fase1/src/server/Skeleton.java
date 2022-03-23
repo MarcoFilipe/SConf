@@ -1,6 +1,9 @@
 package server;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import domain.BankAccount;
 import domain.BankAccount.IndPaymentRequestInformation;
@@ -31,6 +34,7 @@ public class Skeleton<E> {
 		String otherUserID = null;
 		double amount;
 		QRCodeGenerator QR = new QRCodeGenerator();
+		Map<String, List<String>> listOfGroups = new HashMap<String, List<String>>();
 
 		try {
 			userBA = catalog.getBankAccount(userID);
@@ -189,7 +193,32 @@ public class Skeleton<E> {
 				resp = (E) e.getMessage();
 			}
 			break;
+		case "newgroup":
+		case "n":
+			if (splittedMessage.length != 2) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
 			
+			try {
+				
+			ArrayList<String> groupList = new ArrayList<String>();
+			groupList.add(userID);
+			
+			if(listOfGroups.containsKey(splittedMessage[1])) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+			
+			else {
+				listOfGroups.put(splittedMessage[1], groupList);
+				resp = (E) Boolean.TRUE;
+			}
+			
+			} catch (Exception e) {
+				resp = (E) e.getMessage();
+			}
+			break;
 			
 		default:
 			String err = "Comando nao existe";
