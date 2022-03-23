@@ -9,13 +9,13 @@ FEITO:
 * payrequest
 * obtainQRcode
 * confirmQRcode
-
+* newgroup
+* dividepayment
 TODO:
 
-* newgroup
+
 * addu
 * groups
-* dividepayment
 * statuspayments
 * history
 * Conferir eventuais erros no sistema/comandos, como por ex. erros de input.
