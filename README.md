@@ -11,8 +11,8 @@ FEITO:
 * confirmQRcode
 * newgroup
 * dividepayment
-TODO:
 
+TODO:
 
 * addu
 * groups
