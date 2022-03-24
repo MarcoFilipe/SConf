@@ -18,49 +18,44 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
 
 public class QRCodeGenerator {
-	
-	
-	
-	public void generateQRCode(String user, double amount)  throws Exception{
-		
+
+	public void generateQRCode(String user, double amount) throws Exception {
+
 		String s = String.valueOf(amount);
 		String data = user + ":" + s;
 		String path = ".\\QR Codes\\" + user + ".jpg";
-		
-		BitMatrix matrix = new MultiFormatWriter()
-				.encode(data, BarcodeFormat.QR_CODE, 500, 500);
-		
+
+		BitMatrix matrix = new MultiFormatWriter().encode(data, BarcodeFormat.QR_CODE, 500, 500);
+
 		MatrixToImageWriter.writeToPath(matrix, "jpg", Paths.get(path));
 	}
-	
+
 	public String readQRCode(String QRCode) {
 		try {
 			String path = ".\\QR Codes\\" + QRCode + ".jpg";
-			
+
 			FileInputStream fi = new FileInputStream(path);
 			BufferedImage bf = ImageIO.read(fi);
-			
-			BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(
-					new BufferedImageLuminanceSource(bf)));
-			
+
+			BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(new BufferedImageLuminanceSource(bf)));
+
 			Result result = new MultiFormatReader().decode(bitmap);
 			String s = result.getText();
 			fi.close();
 			File myObj = new File(path);
-			
-			
-			if(!myObj.exists()) {
-				
+
+			if (!myObj.exists()) {
+
 				return "fileNotExists";
 			}
 			myObj.delete();
-			
+
 			return s;
-			
-		} catch(Exception e) {
-			
+
+		} catch (Exception e) {
+
 		}
-		return null;	
+		return null;
 	}
-	
+
 }

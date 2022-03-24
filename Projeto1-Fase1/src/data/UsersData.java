@@ -57,6 +57,7 @@ public class UsersData {
 
 			if (!file.exists()) {
 				file.createNewFile();
+				System.out.println("Ficheiro " + USERSINF_FILE_PATHNAME + " criado");
 			}
 
 		} catch (IOException e) {

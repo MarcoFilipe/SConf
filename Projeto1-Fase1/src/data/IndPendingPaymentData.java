@@ -70,6 +70,7 @@ public class IndPendingPaymentData {
 
 			if (!file.exists()) {
 				file.createNewFile();
+				System.out.println("Ficheiro " + IND_PAYMENT_REQUEST_FILE_PATHNAME + " criado");
 			}
 
 		} catch (IOException e) {

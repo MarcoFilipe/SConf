@@ -35,7 +35,7 @@ public class Trokos {
 	private static boolean validateArgs(String[] args) {
 		if (args.length < 2) {
 			System.err.println(
-					"A execução do cliente deve ser feita da seguinte forma: Trokos <serverAddress> <userID> [password]");
+					"A execucao do cliente deve ser feita da seguinte forma: Trokos <serverAddress> <userID> [password]");
 			return false;
 		}
 
@@ -56,7 +56,7 @@ public class Trokos {
 			break;
 		default:
 			System.err.println(
-					"A execução do cliente deve ser feita da seguinte forma: Trokos <serverAddress> <userID> [password]");
+					"A execucao do cliente deve ser feita da seguinte forma: Trokos <serverAddress> <userID> [password]");
 			return false;
 		}
 
