@@ -19,20 +19,32 @@ import com.google.zxing.common.HybridBinarizer;
 
 public class QRCodeGenerator {
 
-	public void generateQRCode(String user, double amount) throws Exception {
+	public static final String FILE_NAME = "QRCodes";
+
+	public String generateQRCode(String user, double amount) throws Exception {
 
 		String s = String.valueOf(amount);
-		String data = user + ":" + s;
-		String path = ".\\QR Codes\\" + user + ".jpg";
+		String data = user + "_" + s;
+
+		File dir = new File(FILE_NAME);
+
+		if (!dir.exists()) {
+			dir.mkdirs();
+			System.out.println("Diretorio " + FILE_NAME + " criado");
+		}
+
+		String path = ".\\" + FILE_NAME + "\\" + data + ".jpg";
 
 		BitMatrix matrix = new MultiFormatWriter().encode(data, BarcodeFormat.QR_CODE, 500, 500);
 
 		MatrixToImageWriter.writeToPath(matrix, "jpg", Paths.get(path));
+
+		return data;
 	}
 
 	public String readQRCode(String QRCode) {
 		try {
-			String path = ".\\QR Codes\\" + QRCode + ".jpg";
+			String path = ".\\" + FILE_NAME + "\\" + QRCode + ".jpg";
 
 			FileInputStream fi = new FileInputStream(path);
 			BufferedImage bf = ImageIO.read(fi);
@@ -45,7 +57,6 @@ public class QRCodeGenerator {
 			File myObj = new File(path);
 
 			if (!myObj.exists()) {
-
 				return "fileNotExists";
 			}
 			myObj.delete();
@@ -53,7 +64,7 @@ public class QRCodeGenerator {
 			return s;
 
 		} catch (Exception e) {
-
+			/* Do nothing */
 		}
 		return null;
 	}

@@ -13,14 +13,14 @@ public class GroupCatalog {
 			groupList.put(userID, group);
 		}
 	}
-	
+
 	public boolean contains(String key) {
-		for(String x : groupList.keySet()) {
-			if(x == key) {
+		for (String x : groupList.keySet()) {
+			if (x == key) {
 				return true;
 			}
 		}
-		return false;	
+		return false;
 	}
 
 	public Group getGroup(String userID) throws UserNotFoundException {

@@ -159,17 +159,7 @@ public class NetworkClient {
 				case "obtainQRcode":
 				case "o":
 					resp = in.readObject();
-
-					if (resp.getClass() == Boolean.class) {
-						boolResp = (Boolean) resp;
-						if (boolResp) {
-							System.out.println("QR code criado com sucesso");
-						} else {
-							System.err.println("Operacao nao concluida");
-						}
-					} else if (resp.getClass() == String.class) {
-						System.err.println((String) resp);
-					}
+					System.out.println("Codigo QR Code: " + (String) resp);
 					break;
 				case "confirmQRcode":
 				case "c":
@@ -201,7 +191,7 @@ public class NetworkClient {
 						System.err.println((String) resp);
 					}
 					break;
-					
+
 				case "addu":
 				case "a":
 					resp = in.readObject();
@@ -217,7 +207,7 @@ public class NetworkClient {
 						System.err.println((String) resp);
 					}
 					break;
-					
+
 				case "groups":
 				case "g":
 					resp = in.readObject();
@@ -231,9 +221,9 @@ public class NetworkClient {
 						}
 					} else if (resp.getClass() == String.class) {
 						System.err.println((String) resp);
-					}	
+					}
 					break;
-					
+
 				case "dividepayment":
 				case "d":
 					resp = in.readObject();
@@ -249,7 +239,7 @@ public class NetworkClient {
 						System.err.println((String) resp);
 					}
 					break;
-					
+
 				default:
 					System.err.println((String) in.readObject());
 					break;

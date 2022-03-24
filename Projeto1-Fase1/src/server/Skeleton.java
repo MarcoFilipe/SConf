@@ -1,10 +1,6 @@
 package server;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import domain.BankAccount;
 import domain.BankAccount.IndPaymentRequestInformation;
 import domain.BankAccountCatalog;
@@ -14,7 +10,6 @@ import exceptions.InsufficientBalanceException;
 import exceptions.InvalidIdentifierException;
 import exceptions.InvalidOperation;
 import exceptions.UserNotFoundException;
-
 
 /**
  * 
@@ -150,12 +145,11 @@ public class Skeleton<E> {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
-			
+
 			try {
-				
+
 				amount = (double) Double.valueOf(splittedMessage[1]);
-				QR.generateQRCode(userID, amount);
-				resp = (E) Boolean.TRUE;
+				resp = (E) QR.generateQRCode(userID, amount);
 			} catch (Exception e) {
 				resp = (E) e.getMessage();
 			}
@@ -166,31 +160,31 @@ public class Skeleton<E> {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
-			
+
 			try {
-				
+
 				String info = QR.readQRCode(splittedMessage[1]);
-				if(info.equals("fileNotExists")) {
+				if (info.equals("fileNotExists")) {
 					resp = (E) "QR code nao existe";
 					break;
 				}
-				
-				String [] parts = info.split(":");
+
+				String[] parts = info.split("_");
 				String otherUser = parts[0];
 				String mont = parts[1];
-				
+
 				if (userID.equals(otherUser)) {
 					resp = (E) Boolean.FALSE;
 					break;
 				}
-				
+
 				otherUserBA = catalog.getBankAccount(otherUser);
 				amount = (double) Double.valueOf(mont);
 				userBA.removeAmount(amount);
 				otherUserBA.addAmount(amount);
 				resp = (E) Boolean.TRUE;
-				
-			} catch ( NumberFormatException | InvalidOperation e) {
+
+			} catch (NumberFormatException | InvalidOperation e) {
 				resp = (E) e.getMessage();
 			} catch (InsufficientBalanceException | UserNotFoundException e) {
 				resp = (E) e.getMessage();
@@ -202,20 +196,20 @@ public class Skeleton<E> {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
-			
+
 			try {
-				
-			if(groupList.contains(splittedMessage[1])) {
-				resp = (E) Boolean.FALSE;
-				break;
-			}
-			
-			else {
-				group.add(userID);
-				groupList.add(splittedMessage[1], group);
-				resp = (E) Boolean.TRUE;
-			}
-			
+
+				if (groupList.contains(splittedMessage[1])) {
+					resp = (E) Boolean.FALSE;
+					break;
+				}
+
+				else {
+					group.add(userID);
+					groupList.add(splittedMessage[1], group);
+					resp = (E) Boolean.TRUE;
+				}
+
 			} catch (Exception e) {
 				resp = (E) e.getMessage();
 			}
@@ -226,78 +220,77 @@ public class Skeleton<E> {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
-			
+
 			try {
-			
-			otherUserID = splittedMessage[1];
-							
-			if(!groupList.contains(splittedMessage[2])) {
-				resp = (E) Boolean.FALSE;
-				break;
-			}
-			
-			Group list = groupList.getGroup(splittedMessage[2]);
-			
-			if(!list.isOwner(userID) || list.contains(otherUserID))	{
-				resp = (E) Boolean.FALSE;
-				break;
-				
-			}else {
-				list.add(otherUserID);
-				resp = (E) Boolean.TRUE;
-			}
-			
+
+				otherUserID = splittedMessage[1];
+
+				if (!groupList.contains(splittedMessage[2])) {
+					resp = (E) Boolean.FALSE;
+					break;
+				}
+
+				Group list = groupList.getGroup(splittedMessage[2]);
+
+				if (!list.isOwner(userID) || list.contains(otherUserID)) {
+					resp = (E) Boolean.FALSE;
+					break;
+
+				} else {
+					list.add(otherUserID);
+					resp = (E) Boolean.TRUE;
+				}
+
 			} catch (Exception e) {
 				resp = (E) e.getMessage();
 			}
 			break;
-			
+
 		case "groups":
 		case "g":
 			if (splittedMessage.length != 1) {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
-			
+
 			try {
-				
-			
+
 			} catch (Exception e) {
 				resp = (E) e.getMessage();
 			}
 			break;
-		
-		case "dividepayment":
-        case "d":
-            if (splittedMessage.length != 3) {
-                resp = (E) Boolean.FALSE;
-                break;
-            }
-            try {
-            String groupid = splittedMessage[1];
-            amount = (double) Double.valueOf(splittedMessage[2]);
 
-            if(!groupList.contains(groupid)) {
-                resp = (E) Boolean.FALSE;
-                break;
-            }
-            Group lista = groupList.getGroup(groupid);
-            if(!lista.getGroup().get(0).equals(userID)) {
-                resp = (E) Boolean.FALSE;
-                break;
-            }
-            double amountPerID = amount / (lista.getGroup().size());
-            for(int i=1; i<lista.getGroup().size(); i++) {
-                otherUserID = lista.getGroup().get(i);
-                otherUserBA = catalog.getBankAccount(otherUserID);
-                otherUserBA.addIndPaymentRequest(otherUserID, userID, amountPerID);
-            }
-            resp = (E) Boolean.TRUE;
-            } catch ( UserNotFoundException | NumberFormatException | InvalidOperation e) {
-                resp = (E) e.getMessage();
-            } 
-            break;
-            
+		case "dividepayment":
+		case "d":
+			if (splittedMessage.length != 3) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+			try {
+				String groupid = splittedMessage[1];
+				amount = (double) Double.valueOf(splittedMessage[2]);
+
+				if (!groupList.contains(groupid)) {
+					resp = (E) Boolean.FALSE;
+					break;
+				}
+				Group lista = groupList.getGroup(groupid);
+				if (!lista.getGroup().get(0).equals(userID)) {
+					resp = (E) Boolean.FALSE;
+					break;
+				}
+				double amountPerID = amount / (lista.getGroup().size());
+				for (int i = 1; i < lista.getGroup().size(); i++) {
+					otherUserID = lista.getGroup().get(i);
+					otherUserBA = catalog.getBankAccount(otherUserID);
+					otherUserBA.addIndPaymentRequest(otherUserID, userID, amountPerID);
+				}
+				resp = (E) Boolean.TRUE;
+			} catch (UserNotFoundException | NumberFormatException | InvalidOperation e) {
+				resp = (E) e.getMessage();
+			}
+			break;
+
 		default:
 			String err = "Comando nao existe";
 			resp = (E) err;

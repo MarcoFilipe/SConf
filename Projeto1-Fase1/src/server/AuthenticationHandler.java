@@ -12,11 +12,9 @@ import exceptions.UserNotFoundException;
  *
  */
 public class AuthenticationHandler {
-	
+
 	protected enum Authentication {
-		VALIDATED,
-		NOT_VALIDATED,
-		USER_NOT_FOUND
+		VALIDATED, NOT_VALIDATED, USER_NOT_FOUND
 	}
 
 	private BankAccountCatalog catalog = null;
