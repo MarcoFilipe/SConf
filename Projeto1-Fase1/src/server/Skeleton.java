@@ -266,7 +266,38 @@ public class Skeleton<E> {
 				resp = (E) e.getMessage();
 			}
 			break;
-			
+		
+		case "dividepayment":
+        case "d":
+            if (splittedMessage.length != 3) {
+                resp = (E) Boolean.FALSE;
+                break;
+            }
+            try {
+            String groupid = splittedMessage[1];
+            amount = (double) Double.valueOf(splittedMessage[2]);
+
+            if(!groupList.contains(groupid)) {
+                resp = (E) Boolean.FALSE;
+                break;
+            }
+            Group lista = groupList.getGroup(groupid);
+            if(!lista.getGroup().get(0).equals(userID)) {
+                resp = (E) Boolean.FALSE;
+                break;
+            }
+            double amountPerID = amount / (lista.getGroup().size());
+            for(int i=1; i<lista.getGroup().size(); i++) {
+                otherUserID = lista.getGroup().get(i);
+                otherUserBA = catalog.getBankAccount(otherUserID);
+                otherUserBA.addIndPaymentRequest(otherUserID, userID, amountPerID);
+            }
+            resp = (E) Boolean.TRUE;
+            } catch ( UserNotFoundException | NumberFormatException | InvalidOperation e) {
+                resp = (E) e.getMessage();
+            } 
+            break;
+            
 		default:
 			String err = "Comando nao existe";
 			resp = (E) err;

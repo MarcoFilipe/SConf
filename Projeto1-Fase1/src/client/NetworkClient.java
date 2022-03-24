@@ -232,6 +232,7 @@ public class NetworkClient {
 					} else if (resp.getClass() == String.class) {
 						System.err.println((String) resp);
 					}	
+					break;
 					
 				case "dividepayment":
 				case "d":
@@ -247,6 +248,8 @@ public class NetworkClient {
 					} else if (resp.getClass() == String.class) {
 						System.err.println((String) resp);
 					}
+					break;
+					
 				default:
 					System.err.println((String) in.readObject());
 					break;
