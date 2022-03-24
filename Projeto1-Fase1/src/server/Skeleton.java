@@ -1,5 +1,6 @@
 package server;
 
+import java.util.HashMap;
 import java.util.List;
 import domain.BankAccount;
 import domain.BankAccount.IndPaymentRequestInformation;
@@ -22,7 +23,7 @@ import exceptions.UserNotFoundException;
 @SuppressWarnings("unchecked")
 public class Skeleton<E> {
 
-	public E invoke(String userID, BankAccountCatalog catalog, String message) {
+	public E invoke(String userID, BankAccountCatalog bankCatalog, GroupCatalog groupCatalog,String message) {
 		E resp = null;
 		String[] splittedMessage = message.split(" ", 3);
 
@@ -32,10 +33,9 @@ public class Skeleton<E> {
 		double amount;
 		QRCodeGenerator QR = new QRCodeGenerator();
 		Group group = new Group();
-		GroupCatalog groupList = new GroupCatalog();
 
 		try {
-			userBA = catalog.getBankAccount(userID);
+			userBA = bankCatalog.getBankAccount(userID);
 		} catch (UserNotFoundException e) {
 			resp = (E) Boolean.FALSE;
 		}
@@ -65,7 +65,7 @@ public class Skeleton<E> {
 			}
 
 			try {
-				otherUserBA = catalog.getBankAccount(otherUserID);
+				otherUserBA = bankCatalog.getBankAccount(otherUserID);
 				amount = (double) Double.valueOf(splittedMessage[2]);
 				userBA.removeAmount(amount);
 				otherUserBA.addAmount(amount);
@@ -91,7 +91,7 @@ public class Skeleton<E> {
 			}
 
 			try {
-				otherUserBA = catalog.getBankAccount(otherUserID);
+				otherUserBA = bankCatalog.getBankAccount(otherUserID);
 				amount = (double) Double.valueOf(splittedMessage[2]);
 				otherUserBA.addIndPaymentRequest(otherUserID, userID, amount);
 				resp = (E) Boolean.TRUE;
@@ -129,7 +129,7 @@ public class Skeleton<E> {
 				IndPaymentRequestInformation ipri = userBA.getIndPaymentRequestInf(uniqueID);
 				amount = ipri.getAmount();
 				otherUserID = ipri.getUserWhoRequestedPayment();
-				otherUserBA = catalog.getBankAccount(otherUserID);
+				otherUserBA = bankCatalog.getBankAccount(otherUserID);
 				userBA.removeAmount(amount);
 				otherUserBA.addAmount(amount);
 				userBA.removeIndPaymentRequest(uniqueID, userID);
@@ -178,7 +178,7 @@ public class Skeleton<E> {
 					break;
 				}
 
-				otherUserBA = catalog.getBankAccount(otherUser);
+				otherUserBA = bankCatalog.getBankAccount(otherUser);
 				amount = (double) Double.valueOf(mont);
 				userBA.removeAmount(amount);
 				otherUserBA.addAmount(amount);
@@ -199,14 +199,14 @@ public class Skeleton<E> {
 
 			try {
 
-				if (groupList.contains(splittedMessage[1])) {
+				if (groupCatalog.contains(splittedMessage[1])) {
 					resp = (E) Boolean.FALSE;
 					break;
 				}
 
 				else {
 					group.add(userID);
-					groupList.add(splittedMessage[1], group);
+					groupCatalog.add(splittedMessage[1], group);
 					resp = (E) Boolean.TRUE;
 				}
 
@@ -222,15 +222,15 @@ public class Skeleton<E> {
 			}
 
 			try {
-
+				
 				otherUserID = splittedMessage[1];
 
-				if (!groupList.contains(splittedMessage[2])) {
+				if (!groupCatalog.contains(splittedMessage[2])) {
 					resp = (E) Boolean.FALSE;
 					break;
 				}
 
-				Group list = groupList.getGroup(splittedMessage[2]);
+				Group list = groupCatalog.getGroup(splittedMessage[2]);
 
 				if (!list.isOwner(userID) || list.contains(otherUserID)) {
 					resp = (E) Boolean.FALSE;
@@ -270,11 +270,11 @@ public class Skeleton<E> {
 				String groupid = splittedMessage[1];
 				amount = (double) Double.valueOf(splittedMessage[2]);
 
-				if (!groupList.contains(groupid)) {
+				if (!groupCatalog.contains(groupid)) {
 					resp = (E) Boolean.FALSE;
 					break;
 				}
-				Group lista = groupList.getGroup(groupid);
+				Group lista = groupCatalog.getGroup(groupid);
 				if (!lista.getGroup().get(0).equals(userID)) {
 					resp = (E) Boolean.FALSE;
 					break;
@@ -282,7 +282,7 @@ public class Skeleton<E> {
 				double amountPerID = amount / (lista.getGroup().size());
 				for (int i = 1; i < lista.getGroup().size(); i++) {
 					otherUserID = lista.getGroup().get(i);
-					otherUserBA = catalog.getBankAccount(otherUserID);
+					otherUserBA = bankCatalog.getBankAccount(otherUserID);
 					otherUserBA.addIndPaymentRequest(otherUserID, userID, amountPerID);
 				}
 				resp = (E) Boolean.TRUE;

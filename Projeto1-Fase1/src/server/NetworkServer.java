@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import domain.BankAccountCatalog;
+import domain.GroupCatalog;
 import exceptions.UserNotFoundException;
 
 /**
@@ -18,8 +19,9 @@ import exceptions.UserNotFoundException;
 public class NetworkServer {
 
 	private Skeleton<Object> skel = new Skeleton<Object>();
-	private BankAccountCatalog catalog = new BankAccountCatalog();
-
+	private BankAccountCatalog bankCatalog = new BankAccountCatalog();
+	private GroupCatalog groupCatalog = new GroupCatalog();
+	
 	public void init(int port) {
 		try {
 			ServerSocket serverSoc = new ServerSocket(port);
@@ -45,7 +47,7 @@ public class NetworkServer {
 	}
 
 	private boolean authentication(String userID, String password) throws UserNotFoundException {
-		AuthenticationHandler authHandler = new AuthenticationHandler(catalog);
+		AuthenticationHandler authHandler = new AuthenticationHandler(bankCatalog);
 
 		switch (authHandler.validate(userID, password)) {
 		case VALIDATED:
@@ -96,7 +98,7 @@ public class NetworkServer {
 
 					while ((message = (String) in.readObject()) != null) {
 
-						Object response = skel.invoke(userID, catalog, message);
+						Object response = skel.invoke(userID, bankCatalog, groupCatalog,message);
 						out.writeObject(response);
 
 					}

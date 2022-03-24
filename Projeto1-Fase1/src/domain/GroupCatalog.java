@@ -1,6 +1,7 @@
 package domain;
 
 import java.util.HashMap;
+import java.util.List;
 
 import exceptions.UserNotFoundException;
 
@@ -15,8 +16,8 @@ public class GroupCatalog {
 	}
 
 	public boolean contains(String key) {
-		for (String x : groupList.keySet()) {
-			if (x == key) {
+		for (String x  : groupList.keySet()) {
+			if (x.equals(key)) {
 				return true;
 			}
 		}
@@ -29,6 +30,14 @@ public class GroupCatalog {
 			throw new UserNotFoundException("Nao existe groupo com essa identidade");
 		}
 		return group;
+	}
+	
+	public HashMap<String, Group> getGroupList() {
+		return groupList;
+	}
+	
+	public void setGroup(HashMap<String, Group> groupList) {
+		this.groupList = groupList;
 	}
 
 }

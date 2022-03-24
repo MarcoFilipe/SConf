@@ -12,11 +12,12 @@ public class Group {
 	}
 
 	public boolean isOwner(String id) {
-		if (group.get(0) == id) {
+		if (group.get(0).equals(id)) {
 			return true;
 		}
 		return false;
 	}
+	
 
 	public boolean contains(String userID) {
 		return group.contains(userID);
