@@ -200,6 +200,39 @@ public class NetworkClient {
 					} else if (resp.getClass() == String.class) {
 						System.err.println((String) resp);
 					}
+					break;
+					
+				case "addu":
+				case "a":
+					resp = in.readObject();
+
+					if (resp.getClass() == Boolean.class) {
+						boolResp = (Boolean) resp;
+						if (boolResp) {
+							System.out.println("Utilizador adicionado com sucesso");
+						} else {
+							System.err.println("Operacao nao concluida");
+						}
+					} else if (resp.getClass() == String.class) {
+						System.err.println((String) resp);
+					}
+					break;
+					
+				case "groups":
+				case "g":
+					resp = in.readObject();
+
+					if (resp.getClass() == Boolean.class) {
+						boolResp = (Boolean) resp;
+						if (boolResp) {
+							System.out.println("Operacao concluida");
+						} else {
+							System.err.println("Operacao nao concluida");
+						}
+					} else if (resp.getClass() == String.class) {
+						System.err.println((String) resp);
+					}	
+					
 				case "dividepayment":
 				case "d":
 					resp = in.readObject();
