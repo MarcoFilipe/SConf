@@ -1,8 +1,10 @@
 package server;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import domain.BankAccount;
+import domain.BankAccount.GroupPaymentReqInformation;
 import domain.BankAccount.IndPaymentRequestInformation;
 import domain.BankAccountCatalog;
 import domain.Group;
@@ -23,7 +25,7 @@ import exceptions.UserNotFoundException;
 @SuppressWarnings("unchecked")
 public class Skeleton<E> {
 
-	public E invoke(String userID, BankAccountCatalog bankCatalog, GroupCatalog groupCatalog,String message) {
+	public E invoke(String userID, BankAccountCatalog bankCatalog, GroupCatalog groupCatalog, String message) {
 		E resp = null;
 		String[] splittedMessage = message.split(" ", 3);
 
@@ -199,6 +201,8 @@ public class Skeleton<E> {
 
 			try {
 
+				bankCatalog.getBankAccount(userID);
+
 				if (groupCatalog.contains(splittedMessage[1])) {
 					resp = (E) Boolean.FALSE;
 					break;
@@ -222,7 +226,7 @@ public class Skeleton<E> {
 			}
 
 			try {
-				
+
 				otherUserID = splittedMessage[1];
 
 				if (!groupCatalog.contains(splittedMessage[2])) {
@@ -254,19 +258,24 @@ public class Skeleton<E> {
 			}
 
 			try {
-				
-				for(Group list : groupCatalog.values()) {
-					if(list.isOwner(userID)) {
-						list.print();
-					}	
+				String str1 = "";
+				String str2 = "";
+				HashMap<String, Group> map = groupCatalog.getGroupList();
+				for (String key : map.keySet()) {
+					if (map.get(key).isOwner(userID)) {
+						str1 = str1 + System.lineSeparator() + key;
+					}
 				}
-				
-				for(Group list : groupCatalog.values()) {
-					if(list.contains(userID) && !list.isOwner(userID)) {
-						list.print();
-					}	
+
+				for (String key : map.keySet()) {
+					if (map.get(key).contains(userID) && !map.get(key).isOwner(userID)) {
+						str2 = str2 + System.lineSeparator() + key;
+					}
 				}
-				
+				str1 = "Grupos (Dono): " + str1 + System.lineSeparator();
+				str2 = System.lineSeparator() + "Grupos (Participante): " + str2 + System.lineSeparator();
+				String str = str1 + str2;
+				resp = (E) str;
 			} catch (Exception e) {
 				resp = (E) e.getMessage();
 			}
@@ -279,30 +288,126 @@ public class Skeleton<E> {
 				break;
 			}
 			try {
-				String groupid = splittedMessage[1];
+				String groupID = splittedMessage[1];
 				amount = (double) Double.valueOf(splittedMessage[2]);
 
-				if (!groupCatalog.contains(groupid)) {
+				if (!groupCatalog.contains(groupID)) {
 					resp = (E) Boolean.FALSE;
 					break;
 				}
-				Group lista = groupCatalog.getGroup(groupid);
-				if (!lista.getGroup().get(0).equals(userID)) {
+
+				group = groupCatalog.getGroup(groupID);
+
+				if (!group.isOwner(userID)) {
 					resp = (E) Boolean.FALSE;
 					break;
 				}
-				double amountPerID = amount / (lista.getGroup().size());
-				for (int i = 1; i < lista.getGroup().size(); i++) {
-					otherUserID = lista.getGroup().get(i);
+
+				List<String> groupMembers = group.getGroupMembers();
+				List<String> pendPayments = new ArrayList<String>();
+				double amountPerID = amount / (groupMembers.size());
+				for (int i = 0; i < groupMembers.size(); i++) {
+					otherUserID = groupMembers.get(i);
 					otherUserBA = bankCatalog.getBankAccount(otherUserID);
-					otherUserBA.addIndPaymentRequest(otherUserID, userID, amountPerID);
+					IndPaymentRequestInformation paymentInf = otherUserBA.addIndPaymentRequest(otherUserID, userID,
+							amountPerID);
+					if (paymentInf != null)
+						pendPayments.add(paymentInf.getUniqueID());
 				}
+				userBA.addGroupPaymentRequest(groupID, amount, new ArrayList<String>(groupMembers), pendPayments);
+
 				resp = (E) Boolean.TRUE;
 			} catch (UserNotFoundException | NumberFormatException | InvalidOperation e) {
 				resp = (E) e.getMessage();
 			}
 			break;
+		case "statuspayments":
+		case "s":
+			if (splittedMessage.length != 2) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
 
+			try {
+				String groupID = splittedMessage[1];
+
+				if (!groupCatalog.contains(groupID)) {
+					resp = (E) Boolean.FALSE;
+					break;
+				}
+
+				group = groupCatalog.getGroup(groupID);
+
+				if (!group.isOwner(userID)) {
+					resp = (E) Boolean.FALSE;
+					break;
+				}
+
+				userBA = bankCatalog.getBankAccount(userID);
+
+				List<GroupPaymentReqInformation> gpriList = userBA.getGroupPaymentReqInformation(groupID);
+
+				for (String currUserID : group.getGroupMembers()) {
+					for (GroupPaymentReqInformation gpri : gpriList) {
+						BankAccount currUserBA = bankCatalog.getBankAccount(currUserID);
+						List<String> paidPendPayments = currUserBA.getPaidPendingPayments();
+						List<String> groupPendPayments = gpri.getPendPayments();
+						for (String paidPayment : paidPendPayments) {
+							for (String groupPendPayment : groupPendPayments) {
+								if (paidPayment.equals(groupPendPayment)) {
+									gpri.updatePendPaymtsList(paidPayment, currUserID);
+									break;
+								}
+							}
+						}
+					}
+				}
+				resp = (E) userBA.statusPayments(groupID);
+			} catch (UserNotFoundException e) {
+				resp = (E) e.getMessage();
+			}
+			break;
+		case "history":
+		case "h":
+			if (splittedMessage.length != 2) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+
+			String groupID = splittedMessage[1];
+
+			try {
+				group = groupCatalog.getGroup(groupID);
+
+				if (!groupCatalog.contains(groupID)) {
+					resp = (E) Boolean.FALSE;
+					break;
+				}
+
+				if (!group.isOwner(userID)) {
+					resp = (E) Boolean.FALSE;
+					break;
+				}
+
+				userBA = bankCatalog.getBankAccount(userID);
+				List<String> paymentIds = userBA.getHistory(groupID);
+
+				StringBuilder stringBuilder = new StringBuilder();
+				stringBuilder.append("ID do grupo: " + groupID);
+				stringBuilder.append(System.getProperty("line.separator"));
+				stringBuilder.append("Lista de pagamentos realizados do grupo " + groupID + ": ");
+				stringBuilder.append(System.getProperty("line.separator"));
+				for (String id : paymentIds) {
+					stringBuilder.append(id);
+					stringBuilder.append(System.getProperty("line.separator"));
+				}
+
+				resp = (E) stringBuilder.toString();
+
+			} catch (UserNotFoundException | InvalidOperation e) {
+				resp = (E) e.getMessage();
+			}
+			break;
 		default:
 			String err = "Comando nao existe";
 			resp = (E) err;

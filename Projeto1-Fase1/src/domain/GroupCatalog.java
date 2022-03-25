@@ -1,9 +1,7 @@
 package domain;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 import exceptions.UserNotFoundException;
 
@@ -18,7 +16,7 @@ public class GroupCatalog {
 	}
 
 	public boolean contains(String key) {
-		for (String x  : groupList.keySet()) {
+		for (String x : groupList.keySet()) {
 			if (x.equals(key)) {
 				return true;
 			}
@@ -33,16 +31,16 @@ public class GroupCatalog {
 		}
 		return group;
 	}
-	
+
 	public HashMap<String, Group> getGroupList() {
 		return groupList;
 	}
-	
+
 	public void setGroup(HashMap<String, Group> groupList) {
 		this.groupList = groupList;
 	}
 
-	public  Collection<Group> values() {
+	public Collection<Group> values() {
 		return groupList.values();
 	}
 }

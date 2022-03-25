@@ -210,12 +210,12 @@ public class NetworkClient {
 
 				case "groups":
 				case "g":
-					resp = in.readObject();
+					resp = (String) in.readObject();
 
 					if (resp.getClass() == Boolean.class) {
 						boolResp = (Boolean) resp;
 						if (boolResp) {
-							System.out.println("Operacao concluida");
+							System.out.println(resp);
 						} else {
 							System.err.println("Operacao nao concluida");
 						}
@@ -239,7 +239,16 @@ public class NetworkClient {
 						System.err.println((String) resp);
 					}
 					break;
-
+				case "statuspayments":
+				case "s":
+					resp = in.readObject();
+					System.out.println(resp);
+					break;
+				case "history":
+				case "h":
+					resp = in.readObject();
+					System.out.println(resp);
+					break;
 				default:
 					System.err.println((String) in.readObject());
 					break;
