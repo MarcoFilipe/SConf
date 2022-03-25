@@ -30,5 +30,11 @@ public class Group {
 	public void setGroup(List<String> group) {
 		this.group = group;
 	}
+	
+	public void print() {
+		for(int i = 0; i < group.size(); i++) {
+            System.out.println(group.get(i));
+        }
+	}
 
 }

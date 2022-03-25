@@ -254,7 +254,19 @@ public class Skeleton<E> {
 			}
 
 			try {
-
+				
+				for(Group list : groupCatalog.values()) {
+					if(list.isOwner(userID)) {
+						list.print();
+					}	
+				}
+				
+				for(Group list : groupCatalog.values()) {
+					if(list.contains(userID) && !list.isOwner(userID)) {
+						list.print();
+					}	
+				}
+				
 			} catch (Exception e) {
 				resp = (E) e.getMessage();
 			}

@@ -1,5 +1,7 @@
 package domain;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -40,4 +42,7 @@ public class GroupCatalog {
 		this.groupList = groupList;
 	}
 
+	public  Collection<Group> values() {
+		return groupList.values();
+	}
 }
