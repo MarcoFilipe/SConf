@@ -228,6 +228,7 @@ public class Skeleton<E> {
 			try {
 
 				otherUserID = splittedMessage[1];
+				bankCatalog.getBankAccount(otherUserID);
 
 				if (!groupCatalog.contains(splittedMessage[2])) {
 					resp = (E) Boolean.FALSE;

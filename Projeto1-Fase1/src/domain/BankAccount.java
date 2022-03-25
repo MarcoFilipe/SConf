@@ -220,7 +220,6 @@ public class BankAccount {
 		private List<String> pendMembersID = null;
 		private List<String> usersWhoPaid = new ArrayList<String>();
 		private String uniqueID = null;
-		private boolean completed = false;
 
 		public GroupPaymentReqInformation(String groupID, double amount, List<String> pendMembersID,
 				List<String> pendPayments) {
