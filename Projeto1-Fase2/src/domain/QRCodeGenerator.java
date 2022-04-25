@@ -1,4 +1,4 @@
-package server;
+package domain;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

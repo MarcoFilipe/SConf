@@ -10,6 +10,7 @@ import domain.BankAccount.IndPaymentRequestInformation;
 import domain.BankAccountCatalog;
 import domain.Group;
 import domain.GroupCatalog;
+import domain.QRCodeGenerator;
 import exceptions.GroupExistsException;
 import exceptions.GroupNotFoundException;
 import exceptions.InsufficientBalanceException;

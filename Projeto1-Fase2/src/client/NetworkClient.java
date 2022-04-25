@@ -12,7 +12,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 public class NetworkClient {
 
-	private static final String SECURITY_FOLDER = "security/";
+	private static final String SECURITY_FOLDER = "Projeto1-Fase2/security/";
 
 	/**
 	 * Metodo que conecta o cliente ao servidor. Caso a conexao seja bem sucedida,

@@ -1,8 +1,6 @@
-package server;
+package domain;
 
 import data.UsersData;
-import domain.BankAccount;
-import domain.BankAccountCatalog;
 import exceptions.UserNotFoundException;
 
 /**
@@ -13,13 +11,13 @@ import exceptions.UserNotFoundException;
  */
 public class AuthenticationHandler {
 
-	protected enum Authentication {
+	public enum Authentication {
 		VALIDATED, NOT_VALIDATED, USER_NOT_FOUND
 	}
 
 	private BankAccountCatalog catalog = null;
 
-	protected AuthenticationHandler(BankAccountCatalog catalog) {
+	public AuthenticationHandler(BankAccountCatalog catalog) {
 		this.catalog = catalog;
 	}
 

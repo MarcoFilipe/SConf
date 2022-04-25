@@ -10,6 +10,7 @@ import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 
+import domain.AuthenticationHandler;
 import domain.BankAccountCatalog;
 import domain.GroupCatalog;
 import exceptions.UserNotFoundException;
@@ -22,19 +23,19 @@ import exceptions.UserNotFoundException;
  */
 public class NetworkServer {
 
-	private static final String SECURITY_FOLDER = "security/";
+	private static final String SECURITY_FOLDER = "Projeto1-Fase2/security/";
 	
 	private Skeleton<Object> skel = new Skeleton<Object>();
 	private BankAccountCatalog bankCatalog = new BankAccountCatalog();
 	private GroupCatalog groupCatalog = new GroupCatalog();
 
-	// TODO cipherPass UNUSED
 	public void init(int port, String cipherPass, String keyStore, String keyStorePass) {
 		try {
 			System.setProperty("javax.net.ssl.keyStore", SECURITY_FOLDER + keyStore);
 			System.setProperty("javax.net.ssl.keyStorePassword", keyStorePass);
 			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
 			SSLServerSocket sslServerSocket = (SSLServerSocket) ssf.createServerSocket(port);
+			// TODO
 			mainLoop(sslServerSocket);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
