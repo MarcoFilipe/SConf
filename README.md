@@ -1,21 +1,7 @@
 # Projeto-SConf---Fase-1
 
-FEITO:
-
-* balance
-* makepayment
-* requestpayment
-* viewrequests
-* payrequest
-* obtainQRcode
-* confirmQRcode
-* newgroup
-* dividepayment
-
 TODO:
+Problemas com armazenamento dos dados. Ainda há alguns problemas com o armazenamento dos dados que devem ser resolvidos, como por exemplo no comando history, precisamos olhar melhor quais dados devem ser armazenados e de qual forma eles devem ser armazenados.
 
-* addu
-* groups
-* statuspayments
-* history
-* Conferir eventuais erros no sistema/comandos, como por ex. erros de input.
+# Projeto-SConf---Fase-2
+TODO: *
