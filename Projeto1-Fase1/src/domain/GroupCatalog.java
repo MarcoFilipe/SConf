@@ -27,7 +27,7 @@ public class GroupCatalog {
 	public Group getGroup(String userID) throws UserNotFoundException {
 		Group group = groupList.get(userID);
 		if (group == null) {
-			throw new UserNotFoundException("Nao existe groupo com essa identidade");
+			throw new UserNotFoundException("Nao existe groupo com esse id.");
 		}
 		return group;
 	}

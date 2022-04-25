@@ -77,7 +77,6 @@ public class NetworkClient {
 		String[] SplittedLine = null;
 		String line = null;
 		String strResp = null;
-		Boolean boolResp = null;
 		Object resp = null;
 
 		System.out.print("Comando: ");
@@ -91,44 +90,24 @@ public class NetworkClient {
 				case "balance":
 				case "b":
 					strResp = (String) in.readObject();
-					System.out.println("Valor atual do saldo da sua conta: " + strResp);
+					System.out.println("Valor atual do saldo da sua conta: " + strResp + ".");
 					break;
 				case "makepayment":
 				case "m":
 					resp = in.readObject();
-
-					if (resp.getClass() == Boolean.class) {
-						boolResp = (Boolean) resp;
-						if (boolResp) {
-							System.out.println("Pagamento efetuado com sucesso");
-						} else {
-							System.err.println("Operacao nao concluida");
-						}
-					} else if (resp.getClass() == String.class) {
-						System.err.println((String) resp);
-					}
+					outputMessage(resp, "Pagamento efetuado com sucesso.");
 					break;
 				case "requestpayment":
 				case "r":
 					resp = in.readObject();
-
-					if (resp.getClass() == Boolean.class) {
-						boolResp = (Boolean) resp;
-						if (boolResp) {
-							System.out.println("Envio do pedido de pagamento efetuado com sucesso");
-						} else {
-							System.err.println("Operacao nao concluida");
-						}
-					} else if (resp.getClass() == String.class) {
-						System.err.println((String) resp);
-					}
+					outputMessage(resp, "Envio do pedido de pagamento efetuado com sucesso.");
 					break;
 				case "viewrequests":
 				case "v":
 					resp = (String) in.readObject();
-					System.out.print("Pedidos de pagamento pendente: ");
+					System.out.print("Pedidos de pagamento pendentes: ");
 					if (((String) resp).length() == 0) {
-						System.out.println("vazio");
+						System.out.println("Nao ha pagamentos pendentes.");
 						break;
 					}
 					System.out.println();
@@ -144,17 +123,7 @@ public class NetworkClient {
 				case "payrequest":
 				case "p":
 					resp = in.readObject();
-
-					if (resp.getClass() == Boolean.class) {
-						boolResp = (Boolean) resp;
-						if (boolResp) {
-							System.out.println("Envio do pedido de pagamento efetuado com sucesso");
-						} else {
-							System.err.println("Operacao nao concluida");
-						}
-					} else if (resp.getClass() == String.class) {
-						System.err.println((String) resp);
-					}
+					outputMessage(resp, "Pagamento efetuado com sucesso.");
 					break;
 				case "obtainQRcode":
 				case "o":
@@ -164,101 +133,63 @@ public class NetworkClient {
 				case "confirmQRcode":
 				case "c":
 					resp = in.readObject();
-
-					if (resp.getClass() == Boolean.class) {
-						boolResp = (Boolean) resp;
-						if (boolResp) {
-							System.out.println("Pagamento QR code efetuado com sucesso");
-						} else {
-							System.err.println("Operacao nao concluida");
-						}
-					} else if (resp.getClass() == String.class) {
-						System.err.println((String) resp);
-					}
+					outputMessage(resp, "Pagamento QR code efetuado com sucesso.");
 					break;
 				case "newgroup":
 				case "n":
 					resp = in.readObject();
-
-					if (resp.getClass() == Boolean.class) {
-						boolResp = (Boolean) resp;
-						if (boolResp) {
-							System.out.println("Grupo criado com sucesso");
-						} else {
-							System.err.println("Operacao nao concluida");
-						}
-					} else if (resp.getClass() == String.class) {
-						System.err.println((String) resp);
-					}
+					outputMessage(resp, "Grupo criado com sucesso.");
 					break;
-
 				case "addu":
 				case "a":
 					resp = in.readObject();
-
-					if (resp.getClass() == Boolean.class) {
-						boolResp = (Boolean) resp;
-						if (boolResp) {
-							System.out.println("Utilizador adicionado com sucesso");
-						} else {
-							System.err.println("Operacao nao concluida");
-						}
-					} else if (resp.getClass() == String.class) {
-						System.err.println((String) resp);
-					}
+					outputMessage(resp, "Utilizador adicionado com sucesso.");
 					break;
-
 				case "groups":
 				case "g":
 					resp = (String) in.readObject();
-
-					if (resp.getClass() == Boolean.class) {
-						boolResp = (Boolean) resp;
-						if (boolResp) {
-							System.out.println(resp);
-						} else {
-							System.err.println("Operacao nao concluida");
-						}
-					} else if (resp.getClass() == String.class) {
-						System.err.println((String) resp);
-					}
+					System.out.println((String) resp);
 					break;
-
 				case "dividepayment":
 				case "d":
 					resp = in.readObject();
-
-					if (resp.getClass() == Boolean.class) {
-						boolResp = (Boolean) resp;
-						if (boolResp) {
-							System.out.println("Pagamento dividido com sucesso!");
-						} else {
-							System.err.println("Operacao nao concluida");
-						}
-					} else if (resp.getClass() == String.class) {
-						System.err.println((String) resp);
-					}
+					outputMessage(resp, "Pagamento dividido com sucesso.");
 					break;
 				case "statuspayments":
 				case "s":
 					resp = in.readObject();
-					System.out.println(resp);
+					System.out.println((String) resp);
 					break;
 				case "history":
 				case "h":
 					resp = in.readObject();
-					System.out.println(resp);
+					System.out.println((String) resp);
 					break;
 				default:
 					System.err.println((String) in.readObject());
 					break;
 				}
 			} catch (NullPointerException | ClassCastException e) {
-				System.err.println("Ocorreu um erro inesperado");
+				System.err.println("Ocorreu um erro inesperado.");
 			}
 			System.out.print("Comando: ");
 		}
 		sc.close();
+	}
+
+	private void outputMessage(Object resp, String message) throws ClassNotFoundException, IOException {
+		boolean boolResp = false;
+
+		if (resp.getClass() == Boolean.class) {
+			boolResp = (Boolean) resp;
+			if (boolResp) {
+				System.out.println(message);
+			} else {
+				System.err.println("Operacao nao concluida.");
+			}
+		} else if (resp.getClass() == String.class) {
+			System.err.println((String) resp);
+		}
 	}
 
 }

@@ -3,15 +3,21 @@ package server;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import domain.BankAccount;
 import domain.BankAccount.GroupPaymentReqInformation;
 import domain.BankAccount.IndPaymentRequestInformation;
 import domain.BankAccountCatalog;
 import domain.Group;
 import domain.GroupCatalog;
+import exceptions.GroupExistsException;
+import exceptions.GroupNotFoundException;
 import exceptions.InsufficientBalanceException;
+import exceptions.InvalidGroupOwnerException;
 import exceptions.InvalidIdentifierException;
 import exceptions.InvalidOperation;
+import exceptions.InvalidQrCodeException;
+import exceptions.UserAlreadyExistsInGroupException;
 import exceptions.UserNotFoundException;
 
 /**
@@ -45,10 +51,10 @@ public class Skeleton<E> {
 		switch (splittedMessage[0]) {
 		case "balance":
 		case "b":
-//			if (splittedMessage.length != 1) {
-//				resp = (E) Boolean.FALSE;
-//				break;
-//			}
+			if (splittedMessage.length != 1) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
 
 			resp = (E) String.valueOf(userBA.balance());
 			break;
@@ -149,11 +155,10 @@ public class Skeleton<E> {
 			}
 
 			try {
-
 				amount = (double) Double.valueOf(splittedMessage[1]);
 				resp = (E) QR.generateQRCode(userID, amount);
 			} catch (Exception e) {
-				resp = (E) e.getMessage();
+				resp = (E) Boolean.FALSE;
 			}
 			break;
 		case "confirmQRcode":
@@ -165,10 +170,10 @@ public class Skeleton<E> {
 
 			try {
 
-				String info = QR.readQRCode(splittedMessage[1]);
-				if (info.equals("fileNotExists")) {
-					resp = (E) "QR code nao existe";
-					break;
+				String qrCode = splittedMessage[1];
+				String info = QR.readQRCode(qrCode);
+				if (info == null) {
+					throw new InvalidQrCodeException("Nao existe pedido identificado pelo qr code \"" + qrCode + "\".");
 				}
 
 				String[] parts = info.split("_");
@@ -188,7 +193,7 @@ public class Skeleton<E> {
 
 			} catch (NumberFormatException | InvalidOperation e) {
 				resp = (E) e.getMessage();
-			} catch (InsufficientBalanceException | UserNotFoundException e) {
+			} catch (InsufficientBalanceException | UserNotFoundException | InvalidQrCodeException e) {
 				resp = (E) e.getMessage();
 			}
 			break;
@@ -203,14 +208,14 @@ public class Skeleton<E> {
 
 				bankCatalog.getBankAccount(userID);
 
-				if (groupCatalog.contains(splittedMessage[1])) {
-					resp = (E) Boolean.FALSE;
-					break;
+				String groupID = splittedMessage[1];
+				if (groupCatalog.contains(groupID)) {
+					throw new GroupExistsException("Ja existe um grupo com id \"" + groupID + "\".");
 				}
 
 				else {
 					group.add(userID);
-					groupCatalog.add(splittedMessage[1], group);
+					groupCatalog.add(groupID, group);
 					resp = (E) Boolean.TRUE;
 				}
 
@@ -230,17 +235,17 @@ public class Skeleton<E> {
 				otherUserID = splittedMessage[1];
 				bankCatalog.getBankAccount(otherUserID);
 
-				if (!groupCatalog.contains(splittedMessage[2])) {
-					resp = (E) Boolean.FALSE;
-					break;
+				String groupID = splittedMessage[2];
+				if (!groupCatalog.contains(groupID)) {
+					throw new GroupNotFoundException("Nao existe grupo com id \"" + groupID + "\".");
 				}
 
-				Group list = groupCatalog.getGroup(splittedMessage[2]);
+				Group list = groupCatalog.getGroup(groupID);
 
-				if (!list.isOwner(userID) || list.contains(otherUserID)) {
-					resp = (E) Boolean.FALSE;
-					break;
-
+				if (!list.isOwner(userID)) {
+					throw new InvalidGroupOwnerException("Apenas o dono do grupo pode adicionar um novo membro.");
+				} else if (list.contains(otherUserID)) {
+					throw new UserAlreadyExistsInGroupException("O usuario indicado ja pertence ao grupo.");
 				} else {
 					list.add(otherUserID);
 					resp = (E) Boolean.TRUE;
@@ -268,11 +273,20 @@ public class Skeleton<E> {
 					}
 				}
 
+				if (str1.equals("")) {
+					str1 = "Nao e dono de nenhum grupo.";
+				}
+
 				for (String key : map.keySet()) {
 					if (map.get(key).contains(userID) && !map.get(key).isOwner(userID)) {
 						str2 = str2 + System.lineSeparator() + key;
 					}
 				}
+
+				if (str2.equals("")) {
+					str2 = "Nao e membro de nenhum grupo.";
+				}
+
 				str1 = "Grupos (Dono): " + str1 + System.lineSeparator();
 				str2 = System.lineSeparator() + "Grupos (Participante): " + str2 + System.lineSeparator();
 				String str = str1 + str2;
@@ -332,39 +346,35 @@ public class Skeleton<E> {
 			try {
 				String groupID = splittedMessage[1];
 
-				if (!groupCatalog.contains(groupID)) {
-					resp = (E) Boolean.FALSE;
-					break;
-				}
-
 				group = groupCatalog.getGroup(groupID);
 
 				if (!group.isOwner(userID)) {
-					resp = (E) Boolean.FALSE;
-					break;
+					throw new InvalidGroupOwnerException(
+							"O usuario com id \"" + userID + "\" nao e dono do grupo \"" + groupID + "\".");
 				}
 
 				userBA = bankCatalog.getBankAccount(userID);
 
 				List<GroupPaymentReqInformation> gpriList = userBA.getGroupPaymentReqInformation(groupID);
-
-				for (String currUserID : group.getGroupMembers()) {
-					for (GroupPaymentReqInformation gpri : gpriList) {
-						BankAccount currUserBA = bankCatalog.getBankAccount(currUserID);
-						List<String> paidPendPayments = currUserBA.getPaidPendingPayments();
-						List<String> groupPendPayments = gpri.getPendPayments();
-						for (String paidPayment : paidPendPayments) {
-							for (String groupPendPayment : groupPendPayments) {
-								if (paidPayment.equals(groupPendPayment)) {
-									gpri.updatePendPaymtsList(paidPayment, currUserID);
-									break;
+				if (gpriList != null) {
+					for (String currUserID : group.getGroupMembers()) {
+						for (GroupPaymentReqInformation gpri : gpriList) {
+							BankAccount currUserBA = bankCatalog.getBankAccount(currUserID);
+							List<String> paidPendPayments = currUserBA.getPaidPendingPayments();
+							List<String> groupPendPayments = gpri.getPendPayments();
+							for (String paidPayment : paidPendPayments) {
+								for (String groupPendPayment : groupPendPayments) {
+									if (paidPayment.equals(groupPendPayment)) {
+										gpri.updatePendPaymtsList(paidPayment, currUserID);
+										break;
+									}
 								}
 							}
 						}
 					}
 				}
 				resp = (E) userBA.statusPayments(groupID);
-			} catch (UserNotFoundException e) {
+			} catch (UserNotFoundException | InvalidGroupOwnerException e) {
 				resp = (E) e.getMessage();
 			}
 			break;
@@ -380,14 +390,9 @@ public class Skeleton<E> {
 			try {
 				group = groupCatalog.getGroup(groupID);
 
-				if (!groupCatalog.contains(groupID)) {
-					resp = (E) Boolean.FALSE;
-					break;
-				}
-
 				if (!group.isOwner(userID)) {
-					resp = (E) Boolean.FALSE;
-					break;
+					throw new InvalidGroupOwnerException(
+							"O usuario com id \"" + userID + "\" nao e dono do grupo \"" + groupID + "\".");
 				}
 
 				userBA = bankCatalog.getBankAccount(userID);
@@ -405,13 +410,12 @@ public class Skeleton<E> {
 
 				resp = (E) stringBuilder.toString();
 
-			} catch (UserNotFoundException | InvalidOperation e) {
+			} catch (UserNotFoundException | InvalidOperation | InvalidGroupOwnerException e) {
 				resp = (E) e.getMessage();
 			}
 			break;
 		default:
-			String err = "Comando nao existe";
-			resp = (E) err;
+			resp = (E) "Comando nao existe";
 			break;
 		}
 

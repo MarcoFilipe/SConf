@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
@@ -33,13 +34,14 @@ public class QRCodeGenerator {
 			System.out.println("Diretorio " + FILE_NAME + " criado");
 		}
 
-		String path = ".\\" + FILE_NAME + "\\" + data + ".jpg";
+		String uniqueID = UUID.randomUUID().toString();
+		String path = ".\\" + FILE_NAME + "\\" + uniqueID + ".jpg";
 
 		BitMatrix matrix = new MultiFormatWriter().encode(data, BarcodeFormat.QR_CODE, 500, 500);
 
 		MatrixToImageWriter.writeToPath(matrix, "jpg", Paths.get(path));
 
-		return data;
+		return uniqueID;
 	}
 
 	public String readQRCode(String QRCode) {

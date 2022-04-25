@@ -47,7 +47,7 @@ public class BankAccount {
 			if (currentAmount - amount >= 0) {
 				currentAmount -= amount;
 			} else {
-				throw new InsufficientBalanceException("Valor na conta insuficiente para proceder com operacao");
+				throw new InsufficientBalanceException("Valor na conta insuficiente para proceder com operacao.");
 			}
 		} else {
 			throw new InvalidOperation();
@@ -88,9 +88,9 @@ public class BankAccount {
 			}
 		}
 		if (IND_PENDING_PAYMENT_SINGLETON.getLine(uniqueID) != null && !paidPendingPayments.contains(uniqueID)) {
-			throw new InvalidIdentifierException("O identificador eh referente a um pagamento pedido a outro cliente");
+			throw new InvalidIdentifierException("O identificador eh referente a um pagamento pedido a outro cliente.");
 		}
-		throw new InvalidIdentifierException("O identificador nao existe");
+		throw new InvalidIdentifierException("O identificador nao existe.");
 	}
 
 	public List<String> getIndPaymtRequestList() {
@@ -138,9 +138,8 @@ public class BankAccount {
 	public synchronized String statusPayments(String groupID) {
 		StringBuilder sb = new StringBuilder();
 		List<GroupPaymentReqInformation> gpriList = groupsPaymentReqInfo.get(groupID);
-		if (gpriList.size() == 0) {
-			sb.append("vazio");
-			sb.append(System.getProperty("line.separator"));
+		if (gpriList == null) {
+			sb.append("Vazio.");
 		} else {
 			for (GroupPaymentReqInformation gpri : gpriList) {
 				sb.append("ID do Pedido: " + gpri.getUniqueID());
@@ -162,6 +161,10 @@ public class BankAccount {
 	public List<String> getHistory(String groupID) throws InvalidOperation {
 		List<GroupPaymentReqInformation> gpriList = groupsPaymentReqInfo.get(groupID);
 		List<String> completed = new ArrayList<String>();
+		if (gpriList == null) {
+			completed.add("Vazio.");
+			return completed;
+		}
 		for (GroupPaymentReqInformation gpri : gpriList) {
 			if (gpri.isCompleted()) {
 				completed.add(gpri.uniqueID);
@@ -170,7 +173,6 @@ public class BankAccount {
 
 		if (completed != null) {
 			HISTORY_SINGLETON.addHistoric(groupID, completed);
-			// update? TODO
 		}
 
 		return completed;
