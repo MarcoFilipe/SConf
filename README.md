@@ -8,8 +8,9 @@ TODO:
 DONE:
 * Passo 3
 * Passo 4.1
+* Passo 4.2
 
 TODO:
-* Passo 4.2
+* Cifrar/Decifrar ficheiro users.txt (Passo 2)
 * Passo 4.3
 * Passo 5
