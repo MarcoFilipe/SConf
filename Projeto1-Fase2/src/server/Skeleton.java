@@ -76,12 +76,12 @@ public class Skeleton<E> {
 			}
 			
 			//VERIFICA ASSINATURA
-			SignedObject so = (SignedObject) in.readObject();
-			Certificate certificate = (Certificate) in.readObject();
-			if(!verifySignedObject(so, certificate)) {
-				resp = (E) Boolean.FALSE;
-				break;
-			}
+//			SignedObject so = (SignedObject) in.readObject();
+//			Certificate certificate = (Certificate) in.readObject();
+//			if(!verifySignedObject(so, certificate)) {
+//				resp = (E) Boolean.FALSE;
+//				break;
+//			}
 			
 
 			otherUserID = splittedMessage[1];

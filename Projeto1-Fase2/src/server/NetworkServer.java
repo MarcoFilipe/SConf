@@ -5,9 +5,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.SignedObject;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 

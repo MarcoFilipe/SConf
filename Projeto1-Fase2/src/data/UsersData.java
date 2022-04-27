@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import data.utils.FileSecurity;
+
 /**
  * Classe responsavel por ler e manipular os dados do ficheiro "users_inf.txt",
  * que possui as informacoes <userID>:<certificatePath> de cada um dos usuarios.
@@ -16,31 +18,39 @@ import java.io.IOException;
  */
 public class UsersData {
 
-	private static final String USERSINF_FILE_PATHNAME = "users.txt";
-	private static File file = createOrGetUsersFile();
+	private static final String USERS_FILE_PATHNAME = "users.cif";
 
 	public synchronized static User getLine(String cipherPass, String userID) {
 		String currentUserID = null;
 		String line = null;
-
-		try (BufferedReader br = new BufferedReader(new BufferedReader(new FileReader(file)))) {
+		
+		File file = createOrGetUsersFile(cipherPass);
+		File temp = FileSecurity.decipherFile(file, cipherPass);
+		
+		try (BufferedReader br = new BufferedReader(new BufferedReader(new FileReader(temp)))) {
 			while ((line = br.readLine()) != null) {
 				String[] lineSplitted = line.split(":", 2);
 				currentUserID = lineSplitted[0];
 				if (currentUserID.equals(userID)) {
+					temp.deleteOnExit();
 					return new User(lineSplitted[0], lineSplitted[1]);
 				}
 			}
 			br.close();
 		} catch (IOException e) {
+			temp.deleteOnExit();
 			System.err.println(e.getMessage());
 		}
-
+		temp.delete();
 		return null;
 	}
 
 	public synchronized static void addLine(String cipherPass, String userID, String certificatePath) {
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(USERSINF_FILE_PATHNAME, true))) {
+		
+		File file = createOrGetUsersFile(cipherPass);
+		File temp = FileSecurity.decipherFile(file, cipherPass);
+
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(temp, true))) {
 			bw.write(userID + ":" + certificatePath);
 			bw.flush();
 			bw.newLine();
@@ -48,16 +58,21 @@ public class UsersData {
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 		}
+		
+		FileSecurity.cipherFile(file, temp, cipherPass);
 	}
 
-	private synchronized static File createOrGetUsersFile() {
+	private synchronized static File createOrGetUsersFile(String cipherPass) {
 		File file = null;
 		try {
-			file = new File(USERSINF_FILE_PATHNAME);
+			file = new File(USERS_FILE_PATHNAME);
 
 			if (!file.exists()) {
+				File temp = File.createTempFile("users", ".temp");
 				file.createNewFile();
-				System.out.println("Ficheiro " + USERSINF_FILE_PATHNAME + " criado");
+				FileSecurity.cipherFile(file, temp, cipherPass);
+				file = new File(USERS_FILE_PATHNAME);
+				System.out.println("Ficheiro " + USERS_FILE_PATHNAME + " criado.");
 			}
 
 		} catch (IOException e) {
@@ -84,4 +99,5 @@ public class UsersData {
 			return certificatePath;
 		}
 	}
+
 }
