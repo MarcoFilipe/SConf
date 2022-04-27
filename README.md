@@ -11,6 +11,6 @@ DONE:
 * Passo 4.2
 
 TODO:
-* Cifrar/Decifrar ficheiro users.txt (Passo 2)
 * Passo 4.3
 * Passo 5
+* Cifrar/Decifrar os outros ficheiros .txt
