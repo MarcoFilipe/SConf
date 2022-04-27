@@ -5,6 +5,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
@@ -13,7 +15,6 @@ import javax.net.ssl.SSLServerSocketFactory;
 import domain.AuthenticationHandler;
 import domain.BankAccountCatalog;
 import domain.GroupCatalog;
-import exceptions.UserNotFoundException;
 
 /**
  * Classe responsavel pela interacao com os clientes.
@@ -24,10 +25,12 @@ import exceptions.UserNotFoundException;
 public class NetworkServer {
 
 	private static final String SECURITY_FOLDER = "Projeto1-Fase2/security/";
-	
+	private static final String CER = ".cer";
+
 	private Skeleton<Object> skel = new Skeleton<Object>();
 	private BankAccountCatalog bankCatalog = new BankAccountCatalog();
 	private GroupCatalog groupCatalog = new GroupCatalog();
+	private String cipherPass;
 
 	public void init(int port, String cipherPass, String keyStore, String keyStorePass) {
 		try {
@@ -35,7 +38,7 @@ public class NetworkServer {
 			System.setProperty("javax.net.ssl.keyStorePassword", keyStorePass);
 			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
 			SSLServerSocket sslServerSocket = (SSLServerSocket) ssf.createServerSocket(port);
-			// TODO
+			this.cipherPass = cipherPass;
 			mainLoop(sslServerSocket);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
@@ -57,20 +60,6 @@ public class NetworkServer {
 		}
 	}
 
-	private boolean authentication(String userID, String password) throws UserNotFoundException {
-		AuthenticationHandler authHandler = new AuthenticationHandler(bankCatalog);
-
-		switch (authHandler.validate(userID, password)) {
-		case VALIDATED:
-			return true;
-		case NOT_VALIDATED:
-			return false;
-		default:
-			authHandler.createNewUser(userID, password);
-			throw new UserNotFoundException("Usuario nao existe, criando novo usuario...");
-		}
-	}
-
 	public class ServerThread extends Thread {
 		private Socket socket;
 
@@ -84,26 +73,10 @@ public class NetworkServer {
 				ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 
-				String userID;
-				String password;
+				String userID = (String) in.readObject();
 
-				userID = (String) in.readObject();
-				password = (String) in.readObject();
-
-				boolean authenticated = false;
-				boolean userNotFoundMessageSent = false;
-				try {
-					authenticated = authentication(userID, password);
-				} catch (UserNotFoundException e) {
-					authenticated = true;
-					userNotFoundMessageSent = true;
-					out.writeObject(e.getMessage());
-				}
-
-				if (authenticated) {
-					if (!userNotFoundMessageSent) {
-						out.writeObject(true);
-					}
+				if (authentication(in, out, userID)) {
+					out.writeObject(true);
 
 					String message = null;
 
@@ -124,4 +97,42 @@ public class NetworkServer {
 			}
 		}
 	}
+
+	private boolean authentication(ObjectInputStream in, ObjectOutputStream out, String userID)
+			throws IOException, ClassNotFoundException {
+		AuthenticationHandler authHandler = new AuthenticationHandler(bankCatalog);
+		int flag = 0;
+		if (authHandler.isRegistered(cipherPass, userID)) {
+			flag = 1;
+		}
+
+		out.writeObject(Long.valueOf(authHandler.getNonce()));
+		out.writeObject(Integer.valueOf(flag));
+
+		if (flag == 0) {
+			register(in, out, authHandler, userID);
+			return true;
+		} else if (flag == 1) {
+			byte[] signedNonce = (byte[]) in.readObject();
+			return authHandler.verifyNonce(cipherPass, userID, signedNonce);
+		}
+		return false;
+	}
+
+	private void register(ObjectInputStream in, ObjectOutputStream out, AuthenticationHandler authHandler,
+			String userID) throws ClassNotFoundException, IOException {
+		long nonce = (Long) in.readObject();
+		byte[] signedNonce = (byte[]) in.readObject();
+		Certificate certificate = (Certificate) in.readObject();
+
+		if (authHandler.verifyNonce(nonce, signedNonce, certificate)) {
+			try {
+				byte[] certBytes = certificate.getEncoded();
+				authHandler.registerNewUser(cipherPass, userID, certBytes, SECURITY_FOLDER + userID + CER);
+			} catch (CertificateEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 }

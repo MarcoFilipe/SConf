@@ -9,17 +9,17 @@ import java.io.IOException;
 
 /**
  * Classe responsavel por ler e manipular os dados do ficheiro "users_inf.txt",
- * que possui as informacoes <userID>:<password> de cada um dos usuarios.
+ * que possui as informacoes <userID>:<certificatePath> de cada um dos usuarios.
  * 
  * @author grupo 36.
  *
  */
 public class UsersData {
 
-	private static final String USERSINF_FILE_PATHNAME = "users_inf.txt";
+	private static final String USERSINF_FILE_PATHNAME = "users.txt";
 	private static File file = createOrGetUsersFile();
 
-	public synchronized static User getLine(String userID) {
+	public synchronized static User getLine(String cipherPass, String userID) {
 		String currentUserID = null;
 		String line = null;
 
@@ -39,9 +39,9 @@ public class UsersData {
 		return null;
 	}
 
-	public synchronized static void addLine(String userID, String password) {
+	public synchronized static void addLine(String cipherPass, String userID, String certificatePath) {
 		try (BufferedWriter bw = new BufferedWriter(new FileWriter(USERSINF_FILE_PATHNAME, true))) {
-			bw.write(userID + ":" + password);
+			bw.write(userID + ":" + certificatePath);
 			bw.flush();
 			bw.newLine();
 			bw.close();
@@ -69,19 +69,19 @@ public class UsersData {
 
 	public static class User {
 		private String userID;
-		private String password;
+		private String certificatePath;
 
-		public User(String userID, String password) {
+		public User(String userID, String certificatePath) {
 			this.userID = userID;
-			this.password = password;
+			this.certificatePath = certificatePath;
 		}
 
 		public String getUserID() {
 			return userID;
 		}
 
-		public String getPassword() {
-			return password;
+		public String getCertificatePath() {
+			return certificatePath;
 		}
 	}
 }

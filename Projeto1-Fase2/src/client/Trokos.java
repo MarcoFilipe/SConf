@@ -21,6 +21,7 @@ public class Trokos {
 			network.connect(ipHostName, port, trustStore, keyStore, keyStorePass, userID);
 		} catch (ClassNotFoundException e) {
 			System.err.println(e.getMessage());
+			System.exit(1);
 		}
 
 	}

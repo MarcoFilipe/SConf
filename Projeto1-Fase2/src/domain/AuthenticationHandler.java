@@ -1,7 +1,21 @@
 package domain;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.util.Random;
+
 import data.UsersData;
-import exceptions.UserNotFoundException;
+import data.UsersData.User;
 
 /**
  * Classe responsavel pela autenticacao do cliente.
@@ -11,46 +25,75 @@ import exceptions.UserNotFoundException;
  */
 public class AuthenticationHandler {
 
-	public enum Authentication {
-		VALIDATED, NOT_VALIDATED, USER_NOT_FOUND
-	}
-
 	private BankAccountCatalog catalog = null;
+	private long nonce;
 
 	public AuthenticationHandler(BankAccountCatalog catalog) {
 		this.catalog = catalog;
+		Random rand = new Random();
+		nonce = rand.nextLong();
+	}
+
+	public long getNonce() {
+		return nonce;
 	}
 
 	/**
-	 * TODO
+	 * Verifies if the user is registered.
 	 * 
-	 * @param userID
-	 * @param password
-	 * @return
-	 * @throws UserNotFoundException
+	 * @param userID The user id
+	 * @return The verification result
 	 */
-	public Authentication validate(String userID, String password) {
-		UsersData.User user = UsersData.getLine(userID);
-
-		if (user == null) {
-			return Authentication.USER_NOT_FOUND;
-		}
-
-		if (userID.equals(user.getUserID()) && password.equals(user.getPassword())) {
-			return Authentication.VALIDATED;
-		}
-
-		return Authentication.NOT_VALIDATED;
+	public boolean isRegistered(String cipherPass, String userID) {
+		return (UsersData.getLine(cipherPass, userID) != null);
 	}
 
-	/**
-	 * TODO
-	 * 
-	 * @param userID   - identificacao do usuario.
-	 * @param password - senha do usuario.
-	 */
-	public void createNewUser(String userID, String password) {
+	public void registerNewUser(String cipherPass, String userID, byte[] certificateBytes, String certificatePath) {
+		try (FileOutputStream fos = new FileOutputStream(certificatePath)) {
+			fos.write(certificateBytes);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		catalog.add(userID, new BankAccount());
-		UsersData.addLine(userID, password);
+		UsersData.addLine(cipherPass, userID, certificatePath);
 	}
+
+	public boolean verifyNonce(long nonce, byte[] signedNonce, Certificate certificate) {
+		if (this.nonce == nonce) {
+			PublicKey publicKey = certificate.getPublicKey();
+			try {
+				Signature signature = Signature.getInstance("MD5withRSA");
+				signature.initVerify(publicKey);
+				signature.update(Long.valueOf(nonce).byteValue());
+				if (signature.verify(signedNonce)) {
+					return true;
+				}
+			} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+
+	public boolean verifyNonce(String cipherPass, String userID, byte[] signedNonce) {
+		User user = UsersData.getLine(cipherPass, userID);
+		try {
+			FileInputStream fis = new FileInputStream(user.getCertificatePath());
+			CertificateFactory cf = CertificateFactory.getInstance("X509");
+			Certificate certificate = cf.generateCertificate(fis);
+			PublicKey publicKey = certificate.getPublicKey();
+			Signature signature = Signature.getInstance("MD5withRSA");
+			signature.initVerify(publicKey);
+			signature.update(Long.valueOf(nonce).byteValue());
+			if (signature.verify(signedNonce)) {
+				return true;
+			}
+		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException | FileNotFoundException
+				| CertificateException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
 }

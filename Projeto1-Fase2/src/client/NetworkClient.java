@@ -1,9 +1,21 @@
 package client;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.Scanner;
 
 import javax.net.SocketFactory;
@@ -36,8 +48,7 @@ public class NetworkClient {
 			ObjectInputStream in = new ObjectInputStream(sslClientSocket.getInputStream());
 			ObjectOutputStream out = new ObjectOutputStream(sslClientSocket.getOutputStream());
 
-			// TODO
-			if (authentication(sslClientSocket, out, in, userID, null)) {
+			if (authentication(sslClientSocket, out, in, keyStore, keyStorePass, userID)) {
 				System.out.println("Autenticado");
 				mainLoop(sslClientSocket, out, in);
 			} else {
@@ -47,34 +58,7 @@ public class NetworkClient {
 
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
-		}
-	}
-
-	private boolean authentication(Socket socket, ObjectOutputStream out, ObjectInputStream in, String userID,
-			String password) throws ClassNotFoundException, IOException {
-
-		networkSend(socket, out, userID);
-		networkSend(socket, out, password);
-
-		Object resp = in.readObject();
-
-		if (resp instanceof String) {
-			System.err.println(resp);
-			return true;
-		} else if (resp instanceof Boolean) {
-			if ((Boolean) resp) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private void networkSend(Socket socket, ObjectOutputStream out, Object message) {
-		try {
-			out.writeObject(message);
-			out.flush();
-		} catch (IOException e) {
-			System.err.println(e.getMessage());
+			System.exit(1);
 		}
 	}
 
@@ -182,6 +166,65 @@ public class NetworkClient {
 			System.out.print("Comando: ");
 		}
 		sc.close();
+	}
+
+	private void networkSend(Socket socket, ObjectOutputStream out, Object message) {
+		try {
+			out.writeObject(message);
+			out.flush();
+		} catch (IOException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
+	}
+
+	private boolean authentication(SSLSocket sslClientSocket, ObjectOutputStream out, ObjectInputStream in,
+			String keyStore, String keyStorePass, String userID) throws IOException, ClassNotFoundException {
+
+		networkSend(sslClientSocket, out, userID);
+
+		long nonce = ((Long) in.readObject()).longValue();
+		int flag = ((Integer) in.readObject()).intValue();
+
+		KeyStore kstore = null;
+		Key privateKey = null;
+		Certificate certificate = null;
+
+		try {
+			FileInputStream kfile = new FileInputStream(SECURITY_FOLDER + keyStore);
+			kstore = KeyStore.getInstance("JCEKS");
+			kstore.load(kfile, keyStorePass.toCharArray());
+			privateKey = kstore.getKey(userID, keyStorePass.toCharArray());
+			certificate = kstore.getCertificate(userID);
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException e1) {
+			e1.printStackTrace();
+			System.exit(1);
+		}
+
+		if (flag == 0) {
+			byte[] signedNonce = getSignedNonce(privateKey, nonce);
+			out.writeObject(nonce);
+			out.writeObject(signedNonce);
+			out.writeObject(certificate);
+			System.out.println("Registando novo usuário...");
+		} else if (flag == 1) {
+			out.writeObject(getSignedNonce(privateKey, nonce));
+		}
+		return (Boolean) in.readObject();
+	}
+
+	private byte[] getSignedNonce(Key privateKey, long nonce) {
+		byte[] signedNonce = null;
+		try {
+			Signature signature = Signature.getInstance("MD5withRSA");
+			signature.initSign((PrivateKey) privateKey);
+			signature.update(Long.valueOf(nonce).byteValue());
+			signedNonce = signature.sign();
+		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		return signedNonce;
 	}
 
 	private void outputMessage(Object resp, String message) throws ClassNotFoundException, IOException {
