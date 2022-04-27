@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="Projeto1-Fase2/src"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/banner-1.0.2.jar"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/commons-collections4-4.1.jar"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/commons-io-2.5.jar"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/commons-lang3-3.6.jar"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/core-3.4.0.jar"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/jai-imageio-core-1.4.0.jar"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/javase-3.4.0.jar"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/jcommander-1.72.jar"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/slf4j-api-1.7.5.jar"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/text-ui-0.0.2.jar"/>
+	<classpathentry kind="lib" path="Projeto1-Fase2/jar_files/zxing-1.1.1.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

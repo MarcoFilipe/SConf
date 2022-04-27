@@ -1,5 +1,14 @@
 package server;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.SignedObject;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +41,7 @@ import exceptions.UserNotFoundException;
 @SuppressWarnings("unchecked")
 public class Skeleton<E> {
 
-	public E invoke(String userID, BankAccountCatalog bankCatalog, GroupCatalog groupCatalog, String message) {
+	public E invoke(String userID, BankAccountCatalog bankCatalog, GroupCatalog groupCatalog, String message, ObjectInputStream in) throws ClassNotFoundException, IOException {
 		E resp = null;
 		String[] splittedMessage = message.split(" ", 3);
 
@@ -65,6 +74,15 @@ public class Skeleton<E> {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
+			
+			//VERIFICA ASSINATURA
+			SignedObject so = (SignedObject) in.readObject();
+			Certificate certificate = (Certificate) in.readObject();
+			if(!verifySignedObject(so, certificate)) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+			
 
 			otherUserID = splittedMessage[1];
 
@@ -132,6 +150,14 @@ public class Skeleton<E> {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
+			
+			//VERIFICA ASSINATURA
+			SignedObject so2 = (SignedObject) in.readObject();
+			Certificate certificate2 = (Certificate) in.readObject();
+			if(!verifySignedObject(so2, certificate2)) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
 
 			try {
 				String uniqueID = splittedMessage[1];
@@ -165,6 +191,14 @@ public class Skeleton<E> {
 		case "confirmQRcode":
 		case "c":
 			if (splittedMessage.length != 2) {
+				resp = (E) Boolean.FALSE;
+				break;
+			}
+			
+			//VERIFICA ASSINATURA
+			SignedObject so3 = (SignedObject) in.readObject();
+			Certificate certificate3 = (Certificate) in.readObject();
+			if(!verifySignedObject(so3, certificate3)) {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
@@ -421,5 +455,21 @@ public class Skeleton<E> {
 		}
 
 		return resp;
+	}
+	
+	private boolean verifySignedObject(SignedObject signedObject, Certificate certificate) throws ClassNotFoundException, IOException {
+		
+		PublicKey publicKey = certificate.getPublicKey();
+		try {
+			Signature signature = Signature.getInstance("MD5withRSA");
+			signature.initVerify(publicKey);
+			signature.update(signedObject.getObject().toString().getBytes());
+			if (signature.verify(signedObject.getSignature())) {
+				return true;
+			}
+		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 }
