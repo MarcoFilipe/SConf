@@ -2,6 +2,7 @@ package server;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -42,7 +43,7 @@ import exceptions.UserNotFoundException;
 public class Skeleton<E> {
 
 	public E invoke(String userID, BankAccountCatalog bankCatalog, GroupCatalog groupCatalog, String message,
-			ObjectInputStream in) throws ClassNotFoundException, IOException {
+			ObjectInputStream in, ObjectOutputStream out) throws ClassNotFoundException, IOException {
 		E resp = null;
 		String[] splittedMessage = message.split(" ", 3);
 
@@ -194,20 +195,23 @@ public class Skeleton<E> {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
-
-			so = (SignedObject) in.readObject();
-			certificate = (Certificate) in.readObject();
-			if (!verifySignedObject(so, certificate)) {
-				resp = (E) Boolean.FALSE;
-				break;
-			}
-
+			
+			//Lê informação do QRCode e envia para o Cliente assinar
 			try {
-
 				String qrCode = splittedMessage[1];
 				String info = QR.readQRCode(qrCode);
 				if (info == null) {
 					throw new InvalidQrCodeException("Nao existe pedido identificado pelo qr code \"" + qrCode + "\".");
+				}
+				
+				out.writeObject(info);
+			
+			
+				so = (SignedObject) in.readObject();
+				certificate = (Certificate) in.readObject();
+				if (!verifySignedObject(so, certificate)) {
+					resp = (E) Boolean.FALSE;
+					break;
 				}
 
 				String[] parts = info.split("_");

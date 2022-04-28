@@ -84,7 +84,7 @@ public class NetworkServer {
 					String message = null;
 
 					while ((message = (String) in.readObject()) != null) {
-						Object response = skel.invoke(userID, bankCatalog, groupCatalog, message, in);
+						Object response = skel.invoke(userID, bankCatalog, groupCatalog, message, in, out);
 						out.writeObject(response);
 					}
 				} else {

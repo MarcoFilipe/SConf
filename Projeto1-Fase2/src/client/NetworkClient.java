@@ -131,7 +131,9 @@ public class NetworkClient {
 					break;
 				case "confirmQRcode":
 				case "c":
-					SendSignedObject(out, line, keyStore, keyStorePass, userID);
+					String QRinfo = (String) in.readObject();
+					
+					SendSignedObject(out, QRinfo, keyStore, keyStorePass, userID);
 					resp = in.readObject();
 					outputMessage(resp, "Pagamento QR code efetuado com sucesso.");
 					break;
