@@ -52,6 +52,8 @@ public class Skeleton<E> {
 		double amount;
 		QRCodeGenerator QR = new QRCodeGenerator();
 		Group group = new Group();
+		SignedObject so = null;
+		Certificate certificate = null;
 
 		try {
 			userBA = bankCatalog.getBankAccount(userID);
@@ -76,10 +78,8 @@ public class Skeleton<E> {
 				break;
 			}
 
-			// VERIFICA ASSINATURA
-			//String line = (String) in.readObject();
-			SignedObject so = (SignedObject) in.readObject();
-			Certificate certificate = (Certificate) in.readObject();
+			so = (SignedObject) in.readObject();
+			certificate = (Certificate) in.readObject();
 			if (!verifySignedObject(so, certificate)) {
 				resp = (E) Boolean.FALSE;
 				break;
@@ -152,10 +152,9 @@ public class Skeleton<E> {
 				break;
 			}
 
-			// VERIFICA ASSINATURA
-			SignedObject so2 = (SignedObject) in.readObject();
-			Certificate certificate2 = (Certificate) in.readObject();
-			if (!verifySignedObject(so2, certificate2)) {
+			so = (SignedObject) in.readObject();
+			certificate = (Certificate) in.readObject();
+			if (!verifySignedObject(so, certificate)) {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
@@ -196,10 +195,9 @@ public class Skeleton<E> {
 				break;
 			}
 
-			// VERIFICA ASSINATURA
-			SignedObject so3 = (SignedObject) in.readObject();
-			Certificate certificate3 = (Certificate) in.readObject();
-			if (!verifySignedObject(so3, certificate3)) {
+			so = (SignedObject) in.readObject();
+			certificate = (Certificate) in.readObject();
+			if (!verifySignedObject(so, certificate)) {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
@@ -463,10 +461,7 @@ public class Skeleton<E> {
 
 		PublicKey publicKey = certificate.getPublicKey();
 		try {
-			Signature signature = Signature.getInstance("MD5withRSA");
-			signature.initVerify(publicKey);
-			signature.update(signedObject.getObject().toString().getBytes());
-			if (signature.verify(signedObject.getSignature())) {
+			if (signedObject.verify(publicKey, Signature.getInstance("MD5withRSA"))) {
 				return true;
 			}
 		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {

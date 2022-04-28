@@ -63,8 +63,8 @@ public class NetworkClient {
 		}
 	}
 
-	public void mainLoop(Socket clientSocket, ObjectOutputStream out, ObjectInputStream in, String keyStore, String keyStorePass, String userID)
-			throws ClassNotFoundException, IOException {
+	public void mainLoop(Socket clientSocket, ObjectOutputStream out, ObjectInputStream in, String keyStore,
+			String keyStorePass, String userID) throws ClassNotFoundException, IOException {
 		Scanner sc = new Scanner(System.in);
 		String[] SplittedLine = null;
 		String line = null;
@@ -75,17 +75,17 @@ public class NetworkClient {
 		while (sc.hasNextLine()) {
 			line = sc.nextLine();
 			SplittedLine = line.split(" ", 3);
-			
-			//------------------------------------------------------------------------------
-			
-			//------------------------------------------------------------------------------
+
+			// ------------------------------------------------------------------------------
+
+			// ------------------------------------------------------------------------------
 			networkSend(clientSocket, out, line);
-			
+
 			try {
 				switch (SplittedLine[0]) {
 				case "balance":
 				case "b":
-					
+
 					strResp = (String) in.readObject();
 					System.out.println("Valor atual do saldo da sua conta: " + strResp + ".");
 					break;
@@ -250,22 +250,22 @@ public class NetworkClient {
 			System.err.println((String) resp);
 		}
 	}
-	
-	private void SendSignedObject(ObjectOutputStream out, String line, String keyStore, String keyStorePass, String userID) {
+
+	private void SendSignedObject(ObjectOutputStream out, String line, String keyStore, String keyStorePass,
+			String userID) {
 		try {
-			
-		//Obtem o keystore
-		KeyStore ks = KeyStore.getInstance("JCEKS");
-		FileInputStream kfile = new FileInputStream(SECURITY_FOLDER + keyStore);
-		ks.load(kfile, keyStorePass.toCharArray());
-		PrivateKey pk = (PrivateKey) ks.getKey(userID, keyStorePass.toCharArray());
-		Certificate cert = ks.getCertificate(userID);
-		
-		SignedObject signedObject = new SignedObject(line, pk, Signature.getInstance("MD5withRSA"));
-		//out.writeObject(line);
-		out.writeObject(signedObject);
-		out.writeObject(cert);
-		}catch (Exception e) {
+
+			KeyStore ks = KeyStore.getInstance("JCEKS");
+			FileInputStream kfile = new FileInputStream(SECURITY_FOLDER + keyStore);
+			ks.load(kfile, keyStorePass.toCharArray());
+			PrivateKey pk = (PrivateKey) ks.getKey(userID, keyStorePass.toCharArray());
+			Certificate cert = ks.getCertificate(userID);
+
+			SignedObject signedObject = new SignedObject(line, pk, Signature.getInstance("MD5withRSA"));
+
+			out.writeObject(signedObject);
+			out.writeObject(cert);
+		} catch (Exception e) {
 			System.err.println("Ocorreu um erro inesperado.");
 		}
 	}
