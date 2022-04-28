@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import data.utils.FileSecurity;
 
@@ -20,13 +22,34 @@ public class UsersData {
 
 	private static final String USERS_FILE_PATHNAME = "users.cif";
 
+	public static List<String> getAllUsersIDs(String cipherPass) {
+		File file = createOrGetUsersFile(cipherPass);
+		File temp = FileSecurity.decipherFile(file, cipherPass);
+
+		List<String> usersIDs = new ArrayList<String>();
+		String line = null;
+
+		try (BufferedReader br = new BufferedReader(new BufferedReader(new FileReader(temp)))) {
+			while ((line = br.readLine()) != null) {
+				String[] lineSplitted = line.split(":", 2);
+				usersIDs.add(lineSplitted[0]);
+			}
+			br.close();
+		} catch (IOException e) {
+			temp.deleteOnExit();
+			System.err.println(e.getMessage());
+		}
+		temp.delete();
+		return usersIDs;
+	}
+
 	public synchronized static User getLine(String cipherPass, String userID) {
 		String currentUserID = null;
 		String line = null;
-		
+
 		File file = createOrGetUsersFile(cipherPass);
 		File temp = FileSecurity.decipherFile(file, cipherPass);
-		
+
 		try (BufferedReader br = new BufferedReader(new BufferedReader(new FileReader(temp)))) {
 			while ((line = br.readLine()) != null) {
 				String[] lineSplitted = line.split(":", 2);
@@ -46,7 +69,7 @@ public class UsersData {
 	}
 
 	public synchronized static void addLine(String cipherPass, String userID, String certificatePath) {
-		
+
 		File file = createOrGetUsersFile(cipherPass);
 		File temp = FileSecurity.decipherFile(file, cipherPass);
 
@@ -58,7 +81,7 @@ public class UsersData {
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 		}
-		
+
 		FileSecurity.cipherFile(file, temp, cipherPass);
 	}
 

@@ -12,7 +12,9 @@ import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 
+import data.UsersData;
 import domain.AuthenticationHandler;
+import domain.BankAccount;
 import domain.BankAccountCatalog;
 import domain.GroupCatalog;
 
@@ -39,6 +41,7 @@ public class NetworkServer {
 			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
 			SSLServerSocket sslServerSocket = (SSLServerSocket) ssf.createServerSocket(port);
 			this.cipherPass = cipherPass;
+			recoverBankAccountCatalogToMemory();
 			mainLoop(sslServerSocket);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
@@ -134,6 +137,13 @@ public class NetworkServer {
 			}
 		}
 	}
-	
+
+	// ainda nao recupera o balance
+	private BankAccountCatalog recoverBankAccountCatalogToMemory() {
+		for (String userID : UsersData.getAllUsersIDs(cipherPass)) {
+			bankCatalog.add(userID, new BankAccount());
+		}
+		return bankCatalog;
+	}
 
 }

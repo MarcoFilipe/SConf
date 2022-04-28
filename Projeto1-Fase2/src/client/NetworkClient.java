@@ -91,7 +91,7 @@ public class NetworkClient {
 					break;
 				case "makepayment":
 				case "m":
-					//SendSignedObject(out, line, keyStore, keyStorePass, userID);
+					SendSignedObject(out, line, keyStore, keyStorePass, userID);
 					resp = in.readObject();
 					outputMessage(resp, "Pagamento efetuado com sucesso.");
 					break;
@@ -254,7 +254,7 @@ public class NetworkClient {
 	private void SendSignedObject(ObjectOutputStream out, String line, String keyStore, String keyStorePass, String userID) {
 		try {
 			
-		//Obt�m o keystore
+		//Obtem o keystore
 		KeyStore ks = KeyStore.getInstance("JCEKS");
 		FileInputStream kfile = new FileInputStream(SECURITY_FOLDER + keyStore);
 		ks.load(kfile, keyStorePass.toCharArray());
@@ -262,6 +262,7 @@ public class NetworkClient {
 		Certificate cert = ks.getCertificate(userID);
 		
 		SignedObject signedObject = new SignedObject(line, pk, Signature.getInstance("MD5withRSA"));
+		//out.writeObject(line);
 		out.writeObject(signedObject);
 		out.writeObject(cert);
 		}catch (Exception e) {
