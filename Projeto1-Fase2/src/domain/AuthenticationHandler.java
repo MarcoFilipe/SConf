@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.util.Random;
 
 import data.UsersData;
 import data.UsersData.User;
@@ -30,7 +30,7 @@ public class AuthenticationHandler {
 
 	public AuthenticationHandler(BankAccountCatalog catalog) {
 		this.catalog = catalog;
-		Random rand = new Random();
+		SecureRandom rand = new SecureRandom();
 		nonce = rand.nextLong();
 	}
 
