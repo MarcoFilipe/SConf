@@ -44,7 +44,7 @@ import exceptions.UserNotFoundException;
 public class Skeleton<E> {
 
 	public E invoke(String userID, BankAccountCatalog bankCatalog, GroupCatalog groupCatalog, String message,
-			ObjectInputStream in, ObjectOutputStream out, BlockChain blockChain)
+			ObjectInputStream in, ObjectOutputStream out, BlockChain blockChain, String cipherPass)
 			throws ClassNotFoundException, IOException {
 		E resp = null;
 		String[] splittedMessage = message.split(" ", 3);
@@ -125,7 +125,7 @@ public class Skeleton<E> {
 			try {
 				otherUserBA = bankCatalog.getBankAccount(otherUserID);
 				amount = (double) Double.valueOf(splittedMessage[2]);
-				otherUserBA.addIndPaymentRequest(otherUserID, userID, amount);
+				otherUserBA.addIndPaymentRequest(otherUserID, userID, amount, cipherPass);
 				resp = (E) Boolean.TRUE;
 			} catch (UserNotFoundException | NumberFormatException | InvalidOperation e) {
 				resp = (E) e.getMessage();
@@ -165,7 +165,7 @@ public class Skeleton<E> {
 
 			try {
 				String uniqueID = splittedMessage[1];
-				IndPaymentRequestInformation ipri = userBA.getIndPaymentRequestInf(uniqueID);
+				IndPaymentRequestInformation ipri = userBA.getIndPaymentRequestInf(uniqueID, cipherPass);
 				amount = ipri.getAmount();
 				otherUserID = ipri.getUserWhoRequestedPayment();
 				otherUserBA = bankCatalog.getBankAccount(otherUserID);
@@ -366,11 +366,11 @@ public class Skeleton<E> {
 					otherUserID = groupMembers.get(i);
 					otherUserBA = bankCatalog.getBankAccount(otherUserID);
 					IndPaymentRequestInformation paymentInf = otherUserBA.addIndPaymentRequest(otherUserID, userID,
-							amountPerID);
+							amountPerID, cipherPass);
 					if (paymentInf != null)
 						pendPayments.add(paymentInf.getUniqueID());
 				}
-				userBA.addGroupPaymentRequest(groupID, amount, new ArrayList<String>(groupMembers), pendPayments);
+				userBA.addGroupPaymentRequest(groupID, amount, new ArrayList<String>(groupMembers), pendPayments, cipherPass);
 
 				resp = (E) Boolean.TRUE;
 			} catch (UserNotFoundException | NumberFormatException | InvalidOperation e) {
@@ -437,7 +437,7 @@ public class Skeleton<E> {
 				}
 
 				userBA = bankCatalog.getBankAccount(userID);
-				List<String> paymentIds = userBA.getHistory(groupID);
+				List<String> paymentIds = userBA.getHistory(groupID, cipherPass);
 
 				StringBuilder stringBuilder = new StringBuilder();
 				stringBuilder.append("ID do grupo: " + groupID);
@@ -477,7 +477,7 @@ public class Skeleton<E> {
 		return false;
 	}
 
-	public void rerunOperations(BankAccountCatalog bankCatalog, List<String> operations) {
+	public void rerunOperations(BankAccountCatalog bankCatalog, List<String> operations, String cipherPass) {
 
 		BankAccount userBA = null;
 		BankAccount otherUserBA = null;
@@ -505,7 +505,7 @@ public class Skeleton<E> {
 				String uniqueID = splittedMessage[1];
 				IndPaymentRequestInformation ipri;
 				try {
-					ipri = userBA.getIndPaymentRequestInf(uniqueID);
+					ipri = userBA.getIndPaymentRequestInf(uniqueID, cipherPass);
 					amount = ipri.getAmount();
 					String otherUserID = ipri.getUserWhoRequestedPayment();
 					otherUserBA = bankCatalog.getBankAccount(otherUserID);
@@ -517,8 +517,8 @@ public class Skeleton<E> {
 					e.printStackTrace();
 				}
 				break;
-			case "obtainQRcode":
-			case "o":
+			case "confirmQRcode":
+			case "c":
 				amount = (double) Double.valueOf(splittedMessage[1]);
 				QRCodeGenerator qr = new QRCodeGenerator();
 				try {

@@ -55,12 +55,12 @@ public class BankAccount {
 	}
 
 	public synchronized IndPaymentRequestInformation addIndPaymentRequest(String userID, String userWhoRequestedPayment,
-			double amount) throws InvalidOperation {
+			double amount, String cipherPass) throws InvalidOperation {
 		IndPaymentRequestInformation inf = null;
 		if (amount >= 0) {
 			inf = new IndPaymentRequestInformation(amount, userID, userWhoRequestedPayment);
 			indPendingPayment.add(inf);
-			IND_PENDING_PAYMENT_SINGLETON.addLine(inf.getUniqueID(), amount, userWhoRequestedPayment);
+			IND_PENDING_PAYMENT_SINGLETON.addLine(cipherPass ,inf.getUniqueID(), amount, userWhoRequestedPayment);
 		} else {
 			throw new InvalidOperation();
 		}
@@ -81,13 +81,13 @@ public class BankAccount {
 		}
 	}
 
-	public IndPaymentRequestInformation getIndPaymentRequestInf(String uniqueID) throws InvalidIdentifierException {
+	public IndPaymentRequestInformation getIndPaymentRequestInf(String uniqueID, String cipherPass) throws InvalidIdentifierException {
 		for (IndPaymentRequestInformation currInf : indPendingPayment) {
 			if (currInf.getUniqueID().equals(uniqueID)) {
 				return currInf;
 			}
 		}
-		if (IND_PENDING_PAYMENT_SINGLETON.getLine(uniqueID) != null && !paidPendingPayments.contains(uniqueID)) {
+		if (IND_PENDING_PAYMENT_SINGLETON.getLine(cipherPass, uniqueID) != null && !paidPendingPayments.contains(uniqueID)) {
 			throw new InvalidIdentifierException("O identificador eh referente a um pagamento pedido a outro cliente.");
 		}
 		throw new InvalidIdentifierException("O identificador nao existe.");
@@ -119,7 +119,7 @@ public class BankAccount {
 	}
 
 	public synchronized GroupPaymentReqInformation addGroupPaymentRequest(String groupID, double amount,
-			List<String> pendMembers, List<String> pendPayments) {
+			List<String> pendMembers, List<String> pendPayments, String cipherPass) {
 		GroupPaymentReqInformation inf = new GroupPaymentReqInformation(groupID, amount, pendMembers, pendPayments);
 		List<GroupPaymentReqInformation> gpriList = groupsPaymentReqInfo.get(groupID);
 		if (gpriList == null) {
@@ -127,7 +127,7 @@ public class BankAccount {
 		}
 		gpriList.add(inf);
 		groupsPaymentReqInfo.put(groupID, gpriList);
-		GROUP_PENDING_PAYMENT_SINGLETON.addLine(groupID, amount);
+		GROUP_PENDING_PAYMENT_SINGLETON.addLine(cipherPass, groupID, amount);
 		return inf;
 	}
 
@@ -158,7 +158,7 @@ public class BankAccount {
 		return sb.toString();
 	}
 
-	public List<String> getHistory(String groupID) throws InvalidOperation {
+	public List<String> getHistory(String groupID, String cipherPass) throws InvalidOperation {
 		List<GroupPaymentReqInformation> gpriList = groupsPaymentReqInfo.get(groupID);
 		List<String> completed = new ArrayList<String>();
 		if (gpriList == null) {
@@ -172,7 +172,7 @@ public class BankAccount {
 		}
 
 		if (completed != null) {
-			HISTORY_SINGLETON.addHistoric(groupID, completed);
+			HISTORY_SINGLETON.addHistoric(cipherPass, groupID, completed);
 		}
 
 		return completed;

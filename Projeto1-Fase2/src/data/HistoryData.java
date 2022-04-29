@@ -6,14 +6,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-public class HistoryData {
-	private static final String HISTORY_FILE_PATHNAME = "history.txt";
-	private static HistoryData history_instance = null;
-	private static File file = null;
+import data.utils.FileSecurity;
 
-	protected HistoryData() {
-		createFile();
-	}
+public class HistoryData {
+	private static final String HISTORY_FILE_PATHNAME = "history.cif";
+	private static HistoryData history_instance = null;
+	//private static File file = null;
+
+	/*protected HistoryData() {
+		createFile();  ////ALTERAR
+	}*/
 
 	public static HistoryData getInstance() {
 		if (history_instance == null) {
@@ -22,8 +24,13 @@ public class HistoryData {
 		return history_instance;
 	}
 
-	public synchronized void addHistoric(String groupID, List<String> uniquePaymentIDs) {
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(HISTORY_FILE_PATHNAME, true))) {
+	public synchronized void addHistoric(String cipherPass, String groupID, List<String> uniquePaymentIDs) {
+		
+		File file = createFile(cipherPass);
+		File temp = FileSecurity.decipherFile(file, cipherPass);
+		
+		
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(temp, true))) {
 			bw.write(groupID);
 			bw.flush();
 			for (String paymentID : uniquePaymentIDs) {
@@ -38,17 +45,22 @@ public class HistoryData {
 		}
 	}
 
-	private synchronized void createFile() {
+	private synchronized File createFile(String cipherPass) {
+		File file = null;
 		try {
 			file = new File(HISTORY_FILE_PATHNAME);
 
 			if (!file.exists()) {
+				File temp = File.createTempFile("users", ".temp");
 				file.createNewFile();
+				FileSecurity.cipherFile(file, temp, cipherPass);
+				file = new File(HISTORY_FILE_PATHNAME);
 				System.out.println("Ficheiro " + HISTORY_FILE_PATHNAME + " criado");
 			}
 
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 		}
+		return file;
 	}
 }
