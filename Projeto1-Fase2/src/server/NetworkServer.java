@@ -16,6 +16,7 @@ import data.UsersData;
 import domain.AuthenticationHandler;
 import domain.BankAccount;
 import domain.BankAccountCatalog;
+import domain.BlockChain;
 import domain.GroupCatalog;
 
 /**
@@ -33,6 +34,7 @@ public class NetworkServer {
 	private BankAccountCatalog bankCatalog = new BankAccountCatalog();
 	private GroupCatalog groupCatalog = new GroupCatalog();
 	private String cipherPass;
+	private BlockChain blockChain = new BlockChain();
 
 	public void init(int port, String cipherPass, String keyStore, String keyStorePass) {
 		try {
@@ -84,7 +86,7 @@ public class NetworkServer {
 					String message = null;
 
 					while ((message = (String) in.readObject()) != null) {
-						Object response = skel.invoke(userID, bankCatalog, groupCatalog, message, in, out);
+						Object response = skel.invoke(userID, bankCatalog, groupCatalog, message, in, out, blockChain);
 						out.writeObject(response);
 					}
 				} else {

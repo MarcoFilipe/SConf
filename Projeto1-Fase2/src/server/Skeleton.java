@@ -18,6 +18,7 @@ import domain.BankAccount;
 import domain.BankAccount.GroupPaymentReqInformation;
 import domain.BankAccount.IndPaymentRequestInformation;
 import domain.BankAccountCatalog;
+import domain.BlockChain;
 import domain.Group;
 import domain.GroupCatalog;
 import domain.QRCodeGenerator;
@@ -43,7 +44,8 @@ import exceptions.UserNotFoundException;
 public class Skeleton<E> {
 
 	public E invoke(String userID, BankAccountCatalog bankCatalog, GroupCatalog groupCatalog, String message,
-			ObjectInputStream in, ObjectOutputStream out) throws ClassNotFoundException, IOException {
+			ObjectInputStream in, ObjectOutputStream out, BlockChain blockChain)
+			throws ClassNotFoundException, IOException {
 		E resp = null;
 		String[] splittedMessage = message.split(" ", 3);
 
@@ -99,6 +101,7 @@ public class Skeleton<E> {
 				userBA.removeAmount(amount);
 				otherUserBA.addAmount(amount);
 				resp = (E) Boolean.TRUE;
+				blockChain.writeTransaction(so.getSignature());
 			} catch (InsufficientBalanceException | UserNotFoundException e) {
 				resp = (E) e.getMessage();
 			} catch (NumberFormatException | InvalidOperation e) {
@@ -170,6 +173,7 @@ public class Skeleton<E> {
 				otherUserBA.addAmount(amount);
 				userBA.removeIndPaymentRequest(uniqueID, userID);
 				resp = (E) Boolean.TRUE;
+				blockChain.writeTransaction(so.getSignature());
 			} catch (InvalidIdentifierException | UserNotFoundException | InvalidOperation
 					| InsufficientBalanceException e) {
 				resp = (E) e.getMessage();
@@ -195,18 +199,17 @@ public class Skeleton<E> {
 				resp = (E) Boolean.FALSE;
 				break;
 			}
-			
-			//Lê informação do QRCode e envia para o Cliente assinar
+
+			// Lï¿½ informaï¿½ï¿½o do QRCode e envia para o Cliente assinar
 			try {
 				String qrCode = splittedMessage[1];
 				String info = QR.readQRCode(qrCode);
 				if (info == null) {
 					throw new InvalidQrCodeException("Nao existe pedido identificado pelo qr code \"" + qrCode + "\".");
 				}
-				
+
 				out.writeObject(info);
-			
-			
+
 				so = (SignedObject) in.readObject();
 				certificate = (Certificate) in.readObject();
 				if (!verifySignedObject(so, certificate)) {
@@ -228,7 +231,7 @@ public class Skeleton<E> {
 				userBA.removeAmount(amount);
 				otherUserBA.addAmount(amount);
 				resp = (E) Boolean.TRUE;
-
+				blockChain.writeTransaction(so.getSignature());
 			} catch (NumberFormatException | InvalidOperation e) {
 				resp = (E) e.getMessage();
 			} catch (InsufficientBalanceException | UserNotFoundException | InvalidQrCodeException e) {
