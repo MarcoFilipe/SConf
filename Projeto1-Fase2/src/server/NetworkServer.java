@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.util.List;
 
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
@@ -18,6 +19,7 @@ import domain.BankAccount;
 import domain.BankAccountCatalog;
 import domain.BlockChain;
 import domain.GroupCatalog;
+import domain.RecoverBlockChain;
 
 /**
  * Classe responsavel pela interacao com os clientes.
@@ -34,7 +36,7 @@ public class NetworkServer {
 	private BankAccountCatalog bankCatalog = new BankAccountCatalog();
 	private GroupCatalog groupCatalog = new GroupCatalog();
 	private String cipherPass;
-	private BlockChain blockChain = new BlockChain();
+	private BlockChain blockChain = null;
 
 	public void init(int port, String cipherPass, String keyStore, String keyStorePass) {
 		try {
@@ -43,7 +45,7 @@ public class NetworkServer {
 			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
 			SSLServerSocket sslServerSocket = (SSLServerSocket) ssf.createServerSocket(port);
 			this.cipherPass = cipherPass;
-			recoverBankAccountCatalogToMemory();
+			recoverDataToMemory();
 			mainLoop(sslServerSocket);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
@@ -140,12 +142,23 @@ public class NetworkServer {
 		}
 	}
 
-	// ainda nao recupera o balance
-	private BankAccountCatalog recoverBankAccountCatalogToMemory() {
+	private BankAccountCatalog recoverDataToMemory() {
 		for (String userID : UsersData.getAllUsersIDs(cipherPass)) {
 			bankCatalog.add(userID, new BankAccount());
 		}
+		recoverTransactions();
 		return bankCatalog;
+	}
+
+	private void recoverTransactions() {
+		List<String> transactions = RecoverBlockChain.recoverAllBlocks();
+		long index = RecoverBlockChain.getIndex();
+		long numTransactions = (long) (transactions.size() % 5);
+		if (numTransactions == 0 && transactions.size() != 0) {
+			index++;
+		}
+		blockChain = new BlockChain(index, RecoverBlockChain.getHash(), (long) (transactions.size() % 5));
+		skel.rerunOperations(bankCatalog, transactions);
 	}
 
 }

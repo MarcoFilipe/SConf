@@ -76,9 +76,6 @@ public class NetworkClient {
 			line = sc.nextLine();
 			SplittedLine = line.split(" ", 3);
 
-			// ------------------------------------------------------------------------------
-
-			// ------------------------------------------------------------------------------
 			networkSend(clientSocket, out, line);
 
 			try {
@@ -91,7 +88,8 @@ public class NetworkClient {
 					break;
 				case "makepayment":
 				case "m":
-					SendSignedObject(out, line, keyStore, keyStorePass, userID);
+					String transaction = SplittedLine[0] + " " + userID + " " + SplittedLine[1] + " " + SplittedLine[2];
+					SendSignedObject(out, transaction, keyStore, keyStorePass, userID);
 					resp = in.readObject();
 					outputMessage(resp, "Pagamento efetuado com sucesso.");
 					break;
@@ -120,7 +118,7 @@ public class NetworkClient {
 					break;
 				case "payrequest":
 				case "p":
-					SendSignedObject(out, line, keyStore, keyStorePass, userID);
+					SendSignedObject(out, (line + userID), keyStore, keyStorePass, userID);
 					resp = in.readObject();
 					outputMessage(resp, "Pagamento efetuado com sucesso.");
 					break;
@@ -133,7 +131,7 @@ public class NetworkClient {
 				case "c":
 					String QRinfo = (String) in.readObject();
 					
-					SendSignedObject(out, QRinfo, keyStore, keyStorePass, userID);
+					SendSignedObject(out, (QRinfo + userID), keyStore, keyStorePass, userID);
 					resp = in.readObject();
 					outputMessage(resp, "Pagamento QR code efetuado com sucesso.");
 					break;

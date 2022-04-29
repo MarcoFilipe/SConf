@@ -101,7 +101,7 @@ public class Skeleton<E> {
 				userBA.removeAmount(amount);
 				otherUserBA.addAmount(amount);
 				resp = (E) Boolean.TRUE;
-				blockChain.writeTransaction(so.getSignature());
+				blockChain.writeTransaction((String) (so.getObject()), so.getSignature());
 			} catch (InsufficientBalanceException | UserNotFoundException e) {
 				resp = (E) e.getMessage();
 			} catch (NumberFormatException | InvalidOperation e) {
@@ -173,7 +173,7 @@ public class Skeleton<E> {
 				otherUserBA.addAmount(amount);
 				userBA.removeIndPaymentRequest(uniqueID, userID);
 				resp = (E) Boolean.TRUE;
-				blockChain.writeTransaction(so.getSignature());
+				blockChain.writeTransaction((String) (so.getObject()), so.getSignature());
 			} catch (InvalidIdentifierException | UserNotFoundException | InvalidOperation
 					| InsufficientBalanceException e) {
 				resp = (E) e.getMessage();
@@ -231,7 +231,7 @@ public class Skeleton<E> {
 				userBA.removeAmount(amount);
 				otherUserBA.addAmount(amount);
 				resp = (E) Boolean.TRUE;
-				blockChain.writeTransaction(so.getSignature());
+				blockChain.writeTransaction((String) (so.getObject()), so.getSignature());
 			} catch (NumberFormatException | InvalidOperation e) {
 				resp = (E) e.getMessage();
 			} catch (InsufficientBalanceException | UserNotFoundException | InvalidQrCodeException e) {
@@ -475,5 +475,61 @@ public class Skeleton<E> {
 			e.printStackTrace();
 		}
 		return false;
+	}
+
+	public void rerunOperations(BankAccountCatalog bankCatalog, List<String> operations) {
+
+		BankAccount userBA = null;
+		BankAccount otherUserBA = null;
+		double amount;
+
+		for (String op : operations) {
+
+			String[] splittedMessage = op.split(" ", 4);
+
+			switch (splittedMessage[0]) {
+			case "makepayment":
+			case "m":
+				try {
+					userBA = bankCatalog.getBankAccount(splittedMessage[1]);
+					otherUserBA = bankCatalog.getBankAccount(splittedMessage[2]);
+					amount = (double) Double.valueOf(splittedMessage[3]);
+					userBA.removeAmount(amount);
+					otherUserBA.addAmount(amount);
+				} catch (UserNotFoundException | InvalidOperation | InsufficientBalanceException e) {
+					e.printStackTrace();
+				}
+				break;
+			case "payrequest":
+			case "p":
+				String uniqueID = splittedMessage[1];
+				IndPaymentRequestInformation ipri;
+				try {
+					ipri = userBA.getIndPaymentRequestInf(uniqueID);
+					amount = ipri.getAmount();
+					String otherUserID = ipri.getUserWhoRequestedPayment();
+					otherUserBA = bankCatalog.getBankAccount(otherUserID);
+					userBA.removeAmount(amount);
+					otherUserBA.addAmount(amount);
+					userBA.removeIndPaymentRequest(uniqueID, splittedMessage[2]);
+				} catch (InvalidIdentifierException | UserNotFoundException | InvalidOperation
+						| InsufficientBalanceException e) {
+					e.printStackTrace();
+				}
+				break;
+			case "obtainQRcode":
+			case "o":
+				amount = (double) Double.valueOf(splittedMessage[1]);
+				QRCodeGenerator qr = new QRCodeGenerator();
+				try {
+					qr.generateQRCode(splittedMessage[2], amount);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				break;
+			}
+
+		}
+
 	}
 }

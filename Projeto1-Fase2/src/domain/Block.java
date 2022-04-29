@@ -1,5 +1,6 @@
 package domain;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -10,6 +11,8 @@ import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
 
+import domain.utils.AppendingObjectOutputStream;
+
 public class Block {
 
 	private ObjectOutputStream file = null;
@@ -17,36 +20,42 @@ public class Block {
 	private MessageDigest digestEng = null;
 	private byte[] prevHash = null;
 	private long numTransactions = 0;
-	private boolean isClosed = false;
 
 	public Block(PrivateKey pk, long index, byte[] prevHash) {
 		try {
-			FileOutputStream fileStream = new FileOutputStream("block_" + index + ".blk");
-			file = new ObjectOutputStream(fileStream);
+			File f = new File("block_" + index + ".blk");
+			if (f.exists()) {
+				file = new AppendingObjectOutputStream(new FileOutputStream(f, true));
+			} else {
+				file = new ObjectOutputStream(new FileOutputStream(f, true));
+				file.writeObject(prevHash);
+				file.writeObject(String.valueOf(index).getBytes());
+				file.writeObject(String.valueOf(5).getBytes());
+			}
 			signEng = Signature.getInstance("SHA256withRSA");
 			signEng.initSign(pk);
 			digestEng = MessageDigest.getInstance("SHA256");
 			this.prevHash = prevHash;
-			file.writeObject(prevHash);
-			file.writeObject(String.valueOf(index).getBytes());
-			file.writeObject(String.valueOf(5).getBytes());
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void writeTransaction(byte[] transaction) {
+	public void writeTransaction(byte[] transaction, byte[] signature) {
 		try {
 			file.writeObject(transaction);
-			signEng.update(transaction);
 			digestEng.update(transaction);
+
+			file.writeObject(signature);
+			signEng.update(signature);
+			digestEng.update(signature);
+
 			numTransactions++;
 			if (numTransactions == 5) {
 				byte[] sign = signEng.sign();
 				file.writeObject(sign);
 				file.flush();
 				file.close();
-				isClosed = true;
 				digestEng.update(sign);
 				prevHash = digestEng.digest();
 			}
@@ -54,9 +63,13 @@ public class Block {
 			e.printStackTrace();
 		}
 	}
-	
+
+	public void setNumTransactions(long numTransactions) {
+		this.numTransactions = numTransactions;
+	}
+
 	public boolean isClosed() {
-		return isClosed;
+		return numTransactions == 5;
 	}
 
 	public byte[] getHash() {
