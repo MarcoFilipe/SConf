@@ -1,16 +1,42 @@
-# Projeto-SConf---Fase-1
+Trabalho 1 - fase 2 de segurança e confiablidade
+Grupo 036
 
-TODO:
-* Problemas com armazenamento dos dados. Ainda há alguns problemas com o armazenamento dos dados que devem ser resolvidos, como por exemplo no comando history, precisamos olhar melhor quais dados devem ser armazenados e de qual forma eles devem ser armazenados.
+- Hugo Consciência 54389
+- Marco Rodrigues 55425
+- Thiago Duarte 53636
 
-# Projeto-SConf---Fase-2
+Como correr o programa:
 
-DONE:
-* Passo 3
-* Passo 4.1
-* Passo 4.2
+- Executar o TrokosServer <port> <password-cifra> <keystore> <password-keystore>
 
-TODO:
-* Passo 4.3
-* Passo 5
-* Cifrar/Decifrar os outros ficheiros .txt
+Obs.: O porto é opcional (por omissão, utiliza-se 45678).
+
+Exemplo (c/ porto): 12345 cifraPass123 server.keystore 123456
+Exemplo (s/ porto): cifraPass123 server.keystore 123456
+
+- Executar o Trokos <serverAddress> <truststore> <keystore> <password-keystore> <userID>
+
+Obs.: <serverAddress> = <IP/hostname>[:Port], onde o porto é opcional (por omissão, utiliza-se 45678).
+
+Exemplo para executar usuário 1 (c/ porto): localhost:12345 client.truststore user1.keystore password1 user1
+Exemplo para executar usuário 1 (s/ porto): localhost client.truststore user1.keystore password1 user1
+
+Exemplo para executar usuário 2 (c/ porto): localhost:12345 client.truststore user2.keystore password2 user2
+Exemplo para executar usuário 2 (s/ porto): localhost client.truststore user2.keystore password2 user2
+
+Exemplo para executar usuário 3 (c/ porto): localhost:12345 client.truststore user3.keystore password3 user3
+Exemplo para executar usuário 3 (s/ porto): localhost client.truststore user3.keystore password3 user3
+
+Informações dos certificados e keystores:
+server.keystore		password: 123456
+server.truststore       password: 123456
+client.truststore	password: 123456
+user1.keystore		password: password1
+user2.keystore		password: password2
+user3.keystore		password: password3
+
+- Executar os comandos desejados nos clientes
+
+- fechar os clientes e o server
+
+- repetir
