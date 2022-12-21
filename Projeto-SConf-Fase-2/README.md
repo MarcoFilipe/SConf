@@ -34,3 +34,5 @@ Informações dos certificados e keystores:
 * user1.keystore		password: password1
 * user2.keystore		password: password2
 * user3.keystore		password: password3
+
+Para mais informações, ler enunciado.pdf
